@@ -28,5 +28,38 @@
       {"dimensions": "100x100", "total_prompt_tokens": 266, "image_tokens": 258},
       {"dimensions": "3000x4000", "total_prompt_tokens": 266, "image_tokens": 258}
     ]
+  },
+  "mechanism_investigation": {
+    "date": "2026-08-16 (follow-up session)",
+    "purpose": "Narrow down WHY the cost is flat, not just confirm THAT it is",
+    "extreme_size_test": {
+      "note": "10x10 and 32x32 (below the docs' 384px single-tile threshold) and 8000x8000 (would require ~121 tiles at 258 tokens/tile per the documented formula, ~31218 tokens, if tiling applied)",
+      "results": [
+        {"dimensions": "10x10", "total_prompt_tokens": 266, "image_tokens": 258},
+        {"dimensions": "32x32", "total_prompt_tokens": 266, "image_tokens": 258},
+        {"dimensions": "8000x8000", "total_prompt_tokens": 266, "image_tokens": 258}
+      ],
+      "conclusion": "Flat cost holds across 10x10 to 8000x8000 - not just flat within the originally tested 100x100-3000x4000 range."
+    },
+    "content_variation_test": {
+      "note": "Fixed 1000x1000 resolution, blank white vs dense random noise - isolates 'fixed grid regardless of content' from 'content-adaptive quantization'",
+      "results": [
+        {"content": "blank_white", "dimensions": "1000x1000", "total_prompt_tokens": 266, "image_tokens": 258},
+        {"content": "dense_random_noise", "dimensions": "1000x1000", "total_prompt_tokens": 266, "image_tokens": 258}
+      ],
+      "conclusion": "Identical cost for blank vs dense content at the same resolution - not content-adaptive."
+    },
+    "client_side_resize_check": {
+      "method": "Read google-genai SDK source directly (types.py, PIL.Image-to-Part conversion)",
+      "finding": "value.save(bytes_io, ...) with no resize/thumbnail call - full original-resolution bytes are sent. Client-side resizing ruled out as the cause."
+    },
+    "documentation_check": {
+      "sources_checked": ["ai.google.dev/gemini-api/docs/tokens", "ai.google.dev/gemini-api/docs/image-understanding", "ai.google.dev/gemini-api/docs/models"],
+      "documented_formula": "Images <=384px in both dimensions: 258 tokens flat. Larger images: tiled into 768x768 tiles, each costing 258 tokens.",
+      "contradiction": "The documented formula predicts token cost should scale with size above 384px. Empirical result (flat 258 up to 8000x8000) directly contradicts this.",
+      "model_specific_override_found": false,
+      "conclusion": "No public documentation found that specifically confirms gemini-2.5-flash overrides the general tiling formula. Mechanism is confirmed by data (robust across 8 orders of magnitude in size and two content extremes) but not fully explained by available public documentation. Plausible unconfirmed explanations: a default media_resolution setting distinct from what the general docs describe, or documentation that has not been updated for 2.5-era models' actual default behavior. Neither is stated as fact."
+    },
+    "cross_provider_caveat": "This flat-cost behavior is very likely specific to gemini-2.5-flash (possibly its default configuration specifically) and must NOT be assumed to generalize to any other provider without independently re-running this same investigation against it. If a future provider's real cost genuinely does not vary with image size or content, this project's entire region-selection/budget-allocation mechanism may not reduce that provider's real cost at all - a fundamental, provider-dependent limit, not a tuning problem."
   }
 }
