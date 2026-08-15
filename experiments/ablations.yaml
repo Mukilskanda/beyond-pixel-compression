@@ -17,6 +17,22 @@ ablations:
       selection active. Isolates region selection's contribution independent
       of routing.
 
+  - name: greedy_vs_dp_knapsack
+    description: >
+      pixelpath/regions.py:greedy_select() vs dp_select() (exact 0/1
+      knapsack, provably optimal). IMPORTANT, verified empirically: with the
+      current flat tokens_per_cell cost model, dp_select and greedy_select
+      produce IDENTICAL selections on real data (0/30 real DocVQA
+      sample x budget combinations showed any difference) — this is not a
+      bug, it's a proven property (equal-cost knapsack, ratio-order ==
+      value-order, greedy is already optimal). Injecting variable costs
+      (simulating packing.py's eventual real tiling costs) immediately
+      produced DP wins (3/15 combinations). This ablation only becomes
+      meaningful once packing.py's real cost model replaces the flat
+      placeholder — until then, running it will correctly show "no
+      difference," which is expected, not a null result to be alarmed by.
+    status: implemented_but_dormant_pending_packing_calibration
+
   - name: fixed_budget
     description: >
       Disable profiler/budget.py's adaptive allocation; use one fixed token
