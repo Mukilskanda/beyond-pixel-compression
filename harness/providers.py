@@ -1,9 +1,15 @@
 """Provider wrappers for vision API calls. Version-stamped for reproducibility.
 
-Two backends behind one interface:
+Three backends behind one interface:
 - OllamaProvider: free, local, unlimited — use for pipeline development.
-- AnthropicProvider: real hosted API — use only for measurement runs that
+- AnthropicProvider: real hosted API, paid — use for measurement runs that
   produce the paper's numbers (token counts are ground truth from usage field).
+- GeminiProvider: real hosted API, free tier (Gemini 2.5 Flash) — use for
+  validating cost-model logic (e.g. pixelpath/packing.py) against real
+  provider token counts at zero cost. NOTE: free-tier behavior (rate limits,
+  possibly different tokenization/billing than paid tier) may not represent
+  paid-tier production behavior — flag this explicitly wherever free-tier
+  numbers inform a methodology decision, don't silently generalize them.
 """
 from __future__ import annotations
 
@@ -72,6 +78,74 @@ class OllamaProvider:
             latency_s=latency,
             model=self.model,
             raw=data,
+        )
+
+        if self.cache is not None:
+            self.cache.put(image_bytes, self.model, settings_key, result.__dict__)
+
+        return result
+
+
+class GeminiProvider:
+    """Real hosted API, free tier (no billing required). Token counts come
+    from response.usage_metadata — ground truth per §3.3, same as
+    AnthropicProvider, but validate whether free-tier tokenization/billing
+    matches paid-tier before treating these numbers as production-representative.
+
+    Auth: reads GEMINI_API_KEY from the environment automatically (the
+    google-genai SDK also accepts GOOGLE_API_KEY, with GOOGLE_API_KEY taking
+    precedence if both are set — use GEMINI_API_KEY alone to avoid ambiguity).
+    Get a free key with no credit card at aistudio.google.com.
+
+    Free tier rate limits (gemini-2.5-flash, subject to change — check
+    ai.google.dev/gemini-api/docs/rate-limits): 15 requests/minute, 1500
+    requests/day. This class does not rate-limit for you — space calls out
+    at the call site if you're running more than a handful.
+    """
+
+    def __init__(self, model: str = "gemini-2.5-flash", cache: ResponseCache | None = None):
+        self.model = model
+        self.cache = cache
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            from google import genai
+            self._client = genai.Client()
+        return self._client
+
+    def call(self, image_path: str | Path, prompt: str, **settings: Any) -> CallResult:
+        from google.genai import types
+        from PIL import Image
+
+        image_bytes = Path(image_path).read_bytes()
+        settings_key = {"prompt": prompt, **settings}
+
+        if self.cache is not None:
+            cached = self.cache.get(image_bytes, self.model, settings_key)
+            if cached is not None:
+                return CallResult(**cached)
+
+        img = Image.open(image_path)
+        config = types.GenerateContentConfig(**settings) if settings else None
+
+        start = time.monotonic()
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=[img, prompt],
+            config=config,
+        )
+        latency = time.monotonic() - start
+
+        usage = response.usage_metadata
+        result = CallResult(
+            text=response.text or "",
+            input_tokens=usage.prompt_token_count if usage else None,
+            output_tokens=usage.candidates_token_count if usage else None,
+            latency_s=latency,
+            model=self.model,
+            raw=response.model_dump() if hasattr(response, "model_dump") else {},
         )
 
         if self.cache is not None:

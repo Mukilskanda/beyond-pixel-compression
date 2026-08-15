@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "purpose": "Real Gemini 2.5 Flash token counts, captured once so future changes to pixelpath/packing.py or the cost model can be checked against real numbers without spending API calls again.",
+    "provider": "gemini-2.5-flash",
+    "tier": "free (no billing account) — NOT independently confirmed to tokenize/bill identically to paid tier",
+    "captured_date": "2026-08-16",
+    "fixed_prompt": "Describe this image in one word.",
+    "fixed_prompt_token_count": 8,
+    "method": "prompt_token_count from response.usage_metadata, minus fixed_prompt_token_count, isolates image-only token cost",
+    "headline_finding": "Token cost is FLAT (258) across all tested image dimensions from 100x100 to 3000x4000 — confirmed independently outside the batch script. Gemini 2.5 Flash does NOT scale image token cost with pixel area/tile count in the range tested. This directly contradicts pixelpath/packing.py's current step-function-per-512px-tile model, which was written with an Anthropic-style formula in mind and had never been calibrated against any real provider.",
+    "verdict": "packing.py is NOT trustworthy for Gemini as-is. Root cause is understood (wrong cost model shape, not noisy/inconsistent data) but packing.py's logic was deliberately not touched in this probe per the task scope (measurement only)."
+  },
+  "samples": [
+    {"filename": "49153.png", "route": "hybrid", "dimensions": "1128x882", "local_estimate": 510, "real_image_tokens": 258, "diff": -252, "pct_diff": -97.7},
+    {"filename": "24580.png", "route": "hybrid", "dimensions": "404x538", "local_estimate": 170, "real_image_tokens": 258, "diff": 88, "pct_diff": 34.1},
+    {"filename": "57349.png", "route": "hybrid", "dimensions": "850x1193", "local_estimate": 510, "real_image_tokens": 258, "diff": -252, "pct_diff": -97.7},
+    {"filename": "39079.png", "route": "hybrid", "dimensions": "685x740", "local_estimate": 340, "real_image_tokens": 258, "diff": -82, "pct_diff": -31.8},
+    {"filename": "24426.png", "route": "hybrid", "dimensions": "875x1135", "local_estimate": 510, "real_image_tokens": 258, "diff": -252, "pct_diff": -97.7},
+    {"filename": "49168.png", "route": "hybrid", "dimensions": "425x822", "local_estimate": 170, "real_image_tokens": 258, "diff": 88, "pct_diff": 34.1},
+    {"filename": "57366.png", "route": "hybrid", "dimensions": "850x1193", "local_estimate": 510, "real_image_tokens": 258, "diff": -252, "pct_diff": -97.7},
+    {"filename": "57368.png", "route": "pixel", "dimensions": "1653x2339", "local_estimate": 1700, "real_image_tokens": 258, "diff": -1442, "pct_diff": -558.9},
+    {"filename": "57370.png", "route": "pixel", "dimensions": "1653x2339", "local_estimate": 1700, "real_image_tokens": 258, "diff": -1442, "pct_diff": -558.9},
+    {"filename": "57373.png", "route": "pixel", "dimensions": "1653x2339", "local_estimate": 1700, "real_image_tokens": 258, "diff": -1442, "pct_diff": -558.9}
+  ],
+  "independent_sanity_check": {
+    "note": "Run outside the batch script to rule out a script artifact, with deliberately extreme sizes",
+    "results": [
+      {"dimensions": "100x100", "total_prompt_tokens": 266, "image_tokens": 258},
+      {"dimensions": "3000x4000", "total_prompt_tokens": 266, "image_tokens": 258}
+    ]
+  }
+}
