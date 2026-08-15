@@ -35,10 +35,16 @@ ablations:
 
   - name: fixed_budget
     description: >
-      Disable profiler/budget.py's adaptive allocation; use one fixed token
-      budget for every image (try 400, matching pixelpath/regions.py's
-      default). Compare against adaptive budget allocation — this is the
-      direct test of the plan's "prior work uses fixed pruning ratio" claim.
+      harness/pipeline.py:build_payload(pixel_budget=400) — pass an explicit
+      int to bypass profiler/budget.py's adaptive allocation entirely (the
+      pipeline's default, as of the wiring fix below, is adaptive). Compare
+      against the adaptive default — this is the direct test of the plan's
+      "prior work uses fixed pruning ratio" claim. NOTE: prior to this fix,
+      build_payload() itself defaulted to a hardcoded pixel_budget=400 and
+      never called allocate_budget() — the adaptive module was tested in
+      isolation but was dead code from the pipeline's perspective. Fixed:
+      default is now None (adaptive), matching what this ablation entry
+      always assumed was the baseline it compares against.
     fixed_budget_tokens: 400
 
   - name: early_vs_late_discard
