@@ -1,0 +1,24 @@
+# Week 2 go/no-go checkpoint: baselines 1, 2, 4 on DocVQA + one more category.
+# Per plan: if uniform downscale already captures most of the available saving,
+# say so and pivot framing to "when does cheap beat clever."
+
+dataset: docvqa
+split: val_v1.0
+sample_limit: 100  # start small per plan §6 cost controls; scale once stable
+
+methods:
+  - name: unreduced
+    fn: baselines.baselines.unreduced
+  - name: downscale_50
+    fn: baselines.baselines.uniform_downscale
+    kwargs: {scale: 0.5}
+  - name: downscale_25
+    fn: baselines.baselines.uniform_downscale
+    kwargs: {scale: 0.25}
+  # provider low-detail mode: implement per-provider flag when wiring the
+  # real measurement provider (not all providers expose one)
+
+provider: anthropic  # real measurement run — do not use ollama for these numbers
+model: claude-opus-5
+
+metrics: [anls, exact_match]
