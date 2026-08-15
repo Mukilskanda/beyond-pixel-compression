@@ -28,13 +28,18 @@ class Region:
         return self.value / self.cost if self.cost else 0.0
 
 
-def propose_regions(image_path: str | Path, grid: int = 4, tokens_per_cell: int = 85) -> list[Region]:
+def propose_regions(image_path: str | Path, grid: int = 4, tokens_per_cell: int = 85, pre_downscale: float = 1.0) -> list[Region]:
     """Partition the image into a grid×grid set of candidate crop regions.
 
     `tokens_per_cell` is a placeholder linear cost model — real provider tiling
     is a step function (see plan's knapsack note); replace via packing.py.
+
+    `pre_downscale` — early-vs-late discard ablation (see saliency_map
+    docstring): < 1.0 computes saliency from a downsampled image (early
+    discard, STAR-inspired), 1.0 (default) computes it at full resolution
+    (late discard).
     """
-    sal = saliency_map(image_path)
+    sal = saliency_map(image_path, pre_downscale=pre_downscale)
     h, w = sal.shape
     gh, gw = h // grid, w // grid
 

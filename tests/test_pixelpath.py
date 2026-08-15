@@ -21,6 +21,29 @@ def test_propose_regions_covers_grid(sample_image):
     assert len(regions) == 16
 
 
+def test_pre_downscale_output_matches_original_resolution(sample_image):
+    """Early-vs-late discard ablation: pre_downscale must not change the
+    output shape — only the resolution the saliency computation itself runs at."""
+    from PIL import Image
+
+    img = Image.open(sample_image)
+    sal_full = saliency_map(sample_image, pre_downscale=1.0)
+    sal_early = saliency_map(sample_image, pre_downscale=0.25)
+    assert sal_full.shape == sal_early.shape == (img.height, img.width)
+
+
+def test_pre_downscale_changes_region_proposal_values(sample_image):
+    """Computing saliency from less information (early discard) should
+    generally produce a different, coarser signal than full-resolution
+    (late discard) — verified as a real, non-trivial effect on real DocVQA
+    scans (see experiments/ablations.yaml: early_vs_late_discard)."""
+    late = propose_regions(sample_image, pre_downscale=1.0)
+    early = propose_regions(sample_image, pre_downscale=0.25)
+    late_values = [r.value for r in late]
+    early_values = [r.value for r in early]
+    assert late_values != early_values
+
+
 def test_greedy_select_respects_budget():
     regions = [
         Region(x=0, y=0, w=10, h=10, value=10.0, cost=50),

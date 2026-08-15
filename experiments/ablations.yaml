@@ -25,6 +25,19 @@ ablations:
       direct test of the plan's "prior work uses fixed pruning ratio" claim.
     fixed_budget_tokens: 400
 
+  - name: early_vs_late_discard
+    description: >
+      STAR-inspired (attention-pruning literature: early-layer pruning loses
+      more than late-layer pruning). Black-box analog: compute saliency on a
+      downscaled image before region selection ("early discard", less
+      information available when deciding what to keep) vs full-resolution
+      saliency with discard only at the final crop step ("late discard",
+      current default). pixelpath/saliency.py:saliency_map(pre_downscale=X).
+      Verified on 5 real DocVQA samples: pre_downscale=0.25 changed the
+      selected top-4 regions vs pre_downscale=1.0 on 3/5 samples (50%
+      region-set overlap on those 3) — a real, measurable effect, not noise.
+    pre_downscale_values: [1.0, 0.5, 0.25]
+
   - name: saliency_fast_vs_accurate
     description: >
       Swap pixelpath/saliency.py's spectral-residual (fast) for a slower,
