@@ -27,6 +27,7 @@ Four backends behind one interface:
 from __future__ import annotations
 
 import base64
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,6 +37,31 @@ try:
     from harness.cache import ResponseCache
 except ImportError:  # running as a script from inside harness/
     from cache import ResponseCache
+
+# Loads GEMINI_API_KEY / GROQ_API_KEY / ANTHROPIC_API_KEY from a .env file at
+# the repo root, if one exists, so keys persist across sessions instead of
+# needing re-export in every new shell (the cause of every provider sweep in
+# prior sessions silently never running - see paper/draft.md §4.3/§8). Real
+# key VALUES are never committed - .env is gitignored; see .env.example for
+# the expected format. Safe no-op if .env doesn't exist or dotenv isn't
+# installed (falls back to whatever's already in the environment).
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass
+
+
+def credentials_status() -> dict[str, bool]:
+    """Real (not assumed) check of which provider credentials are actually
+    readable in this process right now - call this at the start of any
+    sweep before spending quota, per the standing rule that a sweep must
+    confirm credentials load before proceeding to spend-dependent work."""
+    return {
+        "GEMINI_API_KEY": bool(os.environ.get("GEMINI_API_KEY")),
+        "GROQ_API_KEY": bool(os.environ.get("GROQ_API_KEY")),
+        "ANTHROPIC_API_KEY": bool(os.environ.get("ANTHROPIC_API_KEY")),
+    }
 
 
 @dataclass
