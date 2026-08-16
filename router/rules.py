@@ -53,9 +53,19 @@ def route(features: ProfileFeatures, query: str, query_conditioning: bool = True
     on DocVQA (§3.1). HYBRID isn't wrong per se (plan §Stage 2 calls it "often
     the best fidelity/cost point"), but it's not what was expected here.
     Deliberately left unpatched rather than threshold-tuned against 5 examples
-    — real calibration needs the week-7 process (tune against measured
-    fidelity/cost outcomes, not eyeballed feature values). If you're reading
-    this in week 7, this is the first thing to fix with real labeled data.
+    — real calibration needs the week-7 process — tune against measured FIDELITY
+    outcomes only, not fidelity/cost jointly. Retargeted explicitly (was:
+    "fidelity/cost outcomes") after paper/draft.md §9's finding: on both
+    providers tested, HYBRID vs PIXEL vs TEXT do not differ in real billed
+    cost (image cost is fixed; HYBRID's OCR text is the only thing that
+    varies cost, and it only adds cost, never saves it — §2.4, §9.4). A
+    router tuned to trade fidelity against a cost difference that doesn't
+    exist on these providers would be optimizing against a phantom
+    objective. If you're reading this in week 7, retune thresholds purely
+    against measured ANLS/exact-match, and say so explicitly in the commit
+    — do not reintroduce a cost term into the calibration objective without
+    re-establishing that some provider actually prices HYBRID/PIXEL
+    differently first.
     """
     if query_conditioning and _has_spatial_intent(query):
         # Query needs exact spatial grounding; text path would discard it.
