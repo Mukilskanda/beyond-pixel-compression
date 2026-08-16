@@ -8,11 +8,11 @@ from typing import Callable, Iterable
 
 try:
     from harness.cache import ResponseCache
-    from harness.metrics import anls, exact_match
+    from harness.metrics import anls, exact_match, is_truncated
     from harness.providers import AnthropicProvider, OllamaProvider
 except ImportError:  # running as a script from inside harness/
     from cache import ResponseCache
-    from metrics import anls, exact_match
+    from metrics import anls, exact_match, is_truncated
     from providers import AnthropicProvider, OllamaProvider
 
 
@@ -36,27 +36,45 @@ class ResultDB:
                 latency_s REAL,
                 anls_score REAL,
                 exact_match INTEGER,
+                truncated INTEGER DEFAULT 0,
+                finish_reason TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        # Older DBs created before the truncation columns existed - add them
+        # rather than requiring a fresh DB (SQLite ALTER TABLE ADD COLUMN is
+        # a no-op-safe way to migrate forward without losing prior real runs).
+        existing_cols = {row[1] for row in self._conn.execute("PRAGMA table_info(runs)")}
+        if "truncated" not in existing_cols:
+            self._conn.execute("ALTER TABLE runs ADD COLUMN truncated INTEGER DEFAULT 0")
+        if "finish_reason" not in existing_cols:
+            self._conn.execute("ALTER TABLE runs ADD COLUMN finish_reason TEXT")
         self._conn.commit()
 
     def log(self, dataset: str, image_path: str, method: str, result, ground_truths: list[str] | None = None, prompt: str | None = None) -> None:
+        finish_reason = getattr(result, "finish_reason", None)
+        truncated = is_truncated(finish_reason)
+
         anls_score = None
         em_score = None
         if ground_truths:
-            anls_score = anls(result.text, ground_truths)
-            em_score = int(exact_match(result.text, ground_truths))
+            # A truncated response's anls/exact_match would be a truncation
+            # artifact, not a real fidelity measurement (paper/draft.md §9.4)
+            # - store NULL instead of a misleadingly precise 0.0 so a truncated
+            # row is visibly distinct from a genuine wrong answer in the DB.
+            if not truncated:
+                anls_score = anls(result.text, ground_truths)
+                em_score = int(exact_match(result.text, ground_truths))
 
         self._conn.execute(
             "INSERT INTO runs (dataset, image_path, method, model, prompt, response_text, "
-            "input_tokens, output_tokens, latency_s, anls_score, exact_match) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "input_tokens, output_tokens, latency_s, anls_score, exact_match, truncated, finish_reason) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 dataset, image_path, method, result.model, prompt, result.text,
                 result.input_tokens, result.output_tokens, result.latency_s,
-                anls_score, em_score,
+                anls_score, em_score, int(truncated), finish_reason,
             ),
         )
         self._conn.commit()

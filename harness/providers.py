@@ -46,6 +46,16 @@ class CallResult:
     latency_s: float
     model: str
     raw: dict[str, Any]
+    # Provider-reported stop/finish reason, normalized to lowercase strings
+    # ("stop", "length", "max_tokens", "end_turn", etc. depending on provider)
+    # where available, else None. Added after discovering that qwen/qwen3.6-27b's
+    # <think> preamble silently consumed an entire max_tokens budget and produced
+    # a truncated (not wrong) answer that scored anls=0.0 indistinguishably from
+    # a genuine wrong answer (paper/draft.md §9.4). This field lets callers (see
+    # harness/metrics.is_truncated) detect that case instead of re-discovering it
+    # ad hoc per provider. Defaults to None for providers/paths where it isn't
+    # populated yet (e.g. OllamaProvider) - treat None as "unknown", not "not truncated".
+    finish_reason: str | None = None
 
 
 class OllamaProvider:
@@ -152,6 +162,10 @@ class GeminiProvider:
         latency = time.monotonic() - start
 
         usage = response.usage_metadata
+        finish_reason = None
+        if getattr(response, "candidates", None):
+            fr = getattr(response.candidates[0], "finish_reason", None)
+            finish_reason = str(fr).lower() if fr is not None else None
         result = CallResult(
             text=response.text or "",
             input_tokens=usage.prompt_token_count if usage else None,
@@ -159,6 +173,7 @@ class GeminiProvider:
             latency_s=latency,
             model=self.model,
             raw=response.model_dump() if hasattr(response, "model_dump") else {},
+            finish_reason=finish_reason,
         )
 
         if self.cache is not None:
@@ -232,6 +247,7 @@ class GroqProvider:
 
         text = response.choices[0].message.content or ""
         usage = response.usage
+        raw_finish_reason = getattr(response.choices[0], "finish_reason", None)
         result = CallResult(
             text=text,
             input_tokens=usage.prompt_tokens if usage else None,
@@ -239,6 +255,7 @@ class GroqProvider:
             latency_s=latency,
             model=response.model,
             raw=response.model_dump(),
+            finish_reason=str(raw_finish_reason).lower() if raw_finish_reason is not None else None,
         )
 
         if self.cache is not None:
@@ -290,6 +307,7 @@ class AnthropicProvider:
         latency = time.monotonic() - start
 
         text = next((b.text for b in response.content if b.type == "text"), "")
+        stop_reason = getattr(response, "stop_reason", None)
         result = CallResult(
             text=text,
             input_tokens=response.usage.input_tokens,
@@ -297,6 +315,7 @@ class AnthropicProvider:
             latency_s=latency,
             model=response.model,
             raw=response.to_dict(),
+            finish_reason=str(stop_reason).lower() if stop_reason is not None else None,
         )
 
         if self.cache is not None:

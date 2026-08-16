@@ -40,6 +40,23 @@ def anls(prediction: str, ground_truths: list[str], threshold: float = 0.5) -> f
     return best if best >= threshold else 0.0
 
 
+# Provider-reported finish/stop reasons (already lowercased by
+# harness/providers.py) that mean "the response was cut off before the model
+# finished," as opposed to a normal completion. Found via the qwen/qwen3.6-27b
+# <think>-preamble bug (paper/draft.md §9.4): a truncated response scored
+# anls=0.0 identically to a genuine wrong answer, with no signal that the
+# score was a truncation artifact rather than a real fidelity measurement.
+TRUNCATION_FINISH_REASONS = {"length", "max_tokens", "max_output_tokens"}
+
+
+def is_truncated(finish_reason: str | None) -> bool:
+    """True only for a KNOWN truncation reason. None (unknown/unpopulated)
+    returns False, not True - callers that need to distinguish "confirmed not
+    truncated" from "we don't know" must check finish_reason is not None
+    separately (see CallResult.finish_reason docstring)."""
+    return finish_reason is not None and finish_reason.lower() in TRUNCATION_FINISH_REASONS
+
+
 def answer_agreement(reduced_answer: str, unreduced_answer: str) -> bool:
     """Cheap proxy: exact-match after normalization. Replace with judge-model call for production use."""
     return _normalize(reduced_answer) == _normalize(unreduced_answer)
