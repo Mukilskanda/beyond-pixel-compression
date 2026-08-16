@@ -46,6 +46,54 @@ def image_similarity(image_path_a: str | Path, image_path_b: str | Path, grid: i
     return float(np.dot(sig_a, sig_b))
 
 
+class QuestionSimilarity:
+    """Text-embedding similarity for the query-aware cache signature
+    (paper/draft.md §11.4). Uses TF-IDF (scikit-learn, already a project
+    dependency - router/learned.py's planned learned router) rather than a
+    downloaded embedding model, to stay genuinely zero-cost/zero-network:
+    no model weights to fetch, no API call, no new dependency. TF-IDF is a
+    real, standard text-similarity baseline, not a placeholder - it is
+    reported as exactly that (a baseline) in draft.md, not oversold as a
+    modern embedding.
+
+    Must be fit on a corpus of questions before use (`fit`) - cosine
+    similarity between TF-IDF vectors is only meaningful within one fitted
+    vector space, so the corpus should be every question the cache will
+    ever compare against (in this project's real-data experiment, the same
+    40 DocVQA questions used for the image-similarity analysis).
+    """
+
+    def __init__(self):
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        self._vectorizer = TfidfVectorizer(stop_words="english")
+        self._fitted = False
+        self._question_to_vec: dict[str, np.ndarray] = {}
+
+    def fit(self, questions: list[str]) -> None:
+        matrix = self._vectorizer.fit_transform(questions)  # rows already L2-normalized (sklearn default)
+        self._question_to_vec = {
+            q: np.asarray(matrix[i].todense()).flatten() for i, q in enumerate(questions)
+        }
+        self._fitted = True
+
+    def vector(self, question: str) -> np.ndarray:
+        if not self._fitted:
+            raise RuntimeError("QuestionSimilarity must be fit() on a question corpus before use")
+        if question in self._question_to_vec:
+            return self._question_to_vec[question]
+        # question not in the fitted corpus - transform on the fly (still
+        # valid, just not pre-cached)
+        vec = self._vectorizer.transform([question])
+        return np.asarray(vec.todense()).flatten()
+
+    def similarity(self, question_a: str, question_b: str) -> float:
+        va, vb = self.vector(question_a), self.vector(question_b)
+        norm_a, norm_b = np.linalg.norm(va), np.linalg.norm(vb)
+        if norm_a == 0 or norm_b == 0:
+            return 0.0  # no shared vocabulary signal - treat as dissimilar, not an error
+        return float(np.dot(va, vb) / (norm_a * norm_b))
+
+
 @dataclass
 class CacheEntry:
     image_path: str
@@ -93,3 +141,56 @@ class VisualSemanticCache:
         if entry is not None and sim >= threshold:
             return entry, sim
         return None, sim
+
+
+@dataclass
+class QueryCacheEntry:
+    image_path: str
+    question: str
+    answer: str
+    image_signature: np.ndarray
+
+
+class QueryAwareCache:
+    """§11.4: cache-hit requires BOTH image similarity AND question
+    similarity to clear a threshold, unlike VisualSemanticCache above
+    (image-only, §11.2-11.3's negative result). Deliberately a separate
+    class rather than a modified VisualSemanticCache, so the original
+    negative-result experiment stays exactly reproducible.
+    """
+
+    def __init__(self, question_similarity: QuestionSimilarity, grid: int = 16):
+        self.question_similarity = question_similarity
+        self.grid = grid
+        self.entries: list[QueryCacheEntry] = []
+
+    def add(self, image_path: str | Path, question: str, answer: str) -> None:
+        sig = _saliency_signature(image_path, self.grid)
+        self.entries.append(QueryCacheEntry(image_path=str(image_path), question=question, answer=answer, image_signature=sig))
+
+    def best_match(self, image_path: str | Path, question: str) -> tuple[QueryCacheEntry | None, float, float]:
+        """Returns (best entry by combined score, image_sim, question_sim)
+        for that entry, or (None, 0.0, 0.0) if the cache is empty. "Best"
+        is ranked by min(image_sim, question_sim) - the combined score a
+        hit must clear on BOTH axes, not just on average."""
+        if not self.entries:
+            return None, 0.0, 0.0
+        query_img_sig = _saliency_signature(image_path, self.grid)
+        best_entry, best_img_sim, best_q_sim, best_combined = None, 0.0, 0.0, -2.0
+        for entry in self.entries:
+            img_sim = float(np.dot(query_img_sig, entry.image_signature))
+            q_sim = self.question_similarity.similarity(question, entry.question)
+            combined = min(img_sim, q_sim)
+            if combined > best_combined:
+                best_combined = combined
+                best_entry, best_img_sim, best_q_sim = entry, img_sim, q_sim
+        return best_entry, best_img_sim, best_q_sim
+
+    def lookup(self, image_path: str | Path, question: str, threshold: float) -> tuple[QueryCacheEntry | None, float, float]:
+        """Cache HIT only if BOTH image_sim >= threshold AND question_sim >=
+        threshold for the best-matching entry (same shared threshold on
+        both axes, for direct comparability with §11.2's image-only curve)."""
+        entry, img_sim, q_sim = self.best_match(image_path, question)
+        if entry is not None and img_sim >= threshold and q_sim >= threshold:
+            return entry, img_sim, q_sim
+        return None, img_sim, q_sim
