@@ -1,0 +1,71 @@
+{
+  "_meta": {
+    "purpose": "Real Groq (qwen/qwen3.6-27b) token counts, captured once so future changes to the cross-provider comparison can be checked against real numbers without spending API calls again.",
+    "provider": "groq / qwen/qwen3.6-27b",
+    "tier": "free (no credit card) — 30 RPM / 1000 RPD for this model per console.groq.com/docs/rate-limits, checked before running",
+    "captured_date": "2026-08-16",
+    "model_history_note": "Originally planned second provider was Llama 4 Scout vision (preview) on Groq. Confirmed via Groq's own deprecation docs that this model was shut down 2026-07-17, before this project could use it. Switched to qwen/qwen3.6-27b, Groq's currently-offered vision model and its own recommended migration target.",
+    "headline_finding": "Token cost is FLAT and INVARIANT to every pixel-space transform tested (downscale to 50% AND 10%, JPEG quality reduction, fixed-ratio crop) AND to the detail parameter (low/high/unset) - a second, independent provider showing the same qualitative pattern as Gemini 2.5 Flash. Unlike Gemini, Groq's detail parameter (the OpenAI-shaped equivalent of media_resolution) had ZERO effect, whereas Gemini's media_resolution did work (258->74 tokens). Groq's flat-cost behavior is therefore even more rigid than Gemini's.",
+    "verdict": "The project's core technique (pixel-space region selection, adaptive budget allocation) has shown zero cost benefit on two independent real providers. Not proof of a universal law, but no longer explainable as a Gemini-specific quirk."
+  },
+  "metering_sanity_check": {
+    "text_only_call": {"prompt": "Say OK.", "prompt_tokens": 13, "completion_tokens": 10, "total_tokens": 23},
+    "image_call": {"dimensions": "500x500", "input_tokens": 1299, "note": "different order of magnitude from Gemini's flat 258 - itself informative"}
+  },
+  "mechanism_check": {
+    "note": "unreduced vs uniform_downscale_50 on 4 real DocVQA samples - byte-identical on every sample",
+    "results": [
+      {"filename": "49153.png", "unreduced_tokens": 1827, "downscale_50_tokens": 1827},
+      {"filename": "24580.png", "unreduced_tokens": 1810, "downscale_50_tokens": 1810},
+      {"filename": "57349.png", "unreduced_tokens": 1812, "downscale_50_tokens": 1812},
+      {"filename": "24581.png", "unreduced_tokens": 1810, "downscale_50_tokens": 1810}
+    ],
+    "extreme_downscale_check": {
+      "note": "10% scale (225x176, genuine thumbnail) on sample 49153.png - still flat",
+      "tiny_10pct_tokens": 1827,
+      "matches_unreduced": true
+    }
+  },
+  "detail_parameter_check": {
+    "note": "sample 49153.png, unreduced image, varying only the detail parameter",
+    "results": [
+      {"detail": "unset (default)", "tokens": 1827},
+      {"detail": "low", "tokens": 1827},
+      {"detail": "high", "tokens": 1827}
+    ],
+    "conclusion": "No effect whatsoever - contrasts with Gemini's media_resolution, which DID change cost (258->74)."
+  },
+  "full_go_no_go_comparison": {
+    "dataset": "docvqa_week2_groq",
+    "n_samples": 3,
+    "n_conditions": 7,
+    "total_real_calls": 21,
+    "cost_usd": 0,
+    "samples": [
+      {
+        "filename": "49153.png",
+        "unreduced": 1827, "uniform_downscale_50": 1827, "jpeg_quality_50": 1827,
+        "fixed_ratio_crop_60": 1827, "low_detail": 1827, "ocr_everything": 1926, "full_pipeline_hybrid": 1926
+      },
+      {
+        "filename": "24580.png",
+        "unreduced": 1810, "uniform_downscale_50": 1810, "jpeg_quality_50": 1810,
+        "fixed_ratio_crop_60": 1810, "low_detail": 1810, "ocr_everything": 1830, "full_pipeline_hybrid": 1830
+      },
+      {
+        "filename": "57349.png",
+        "unreduced": 1812, "uniform_downscale_50": 1812, "jpeg_quality_50": 1812,
+        "fixed_ratio_crop_60": 1812, "low_detail": 1812, "ocr_everything": 2027, "full_pipeline_hybrid": 2027
+      }
+    ],
+    "conclusion": "Every pixel-space baseline (downscale, JPEG, crop, low-detail) is byte-identical to unreduced on every sample. Only ocr_everything/full_pipeline_hybrid differ, and they cost MORE (add OCR text on top of an already-fixed image cost)."
+  },
+  "fidelity_note": {
+    "caveat": "qwen/qwen3.6-27b is a reasoning model emitting a <think> block before its final answer. Initial run used max_tokens=300, entirely consumed by thinking on every sample - logged anls_score=0.0 for every row reflects TRUNCATED, not necessarily wrong, answers. Not a real fidelity comparison.",
+    "retry_with_max_tokens_2000": [
+      {"filename": "24580.png", "question": "university name", "anls": 1.0, "answer": "University of California, San Diego", "note": "perfect"},
+      {"filename": "57349.png", "question": "company name", "anls": 0.0, "answer": "contains 'ITC Limited' verbatim but wrapped in extra prose", "note": "correct content, metric-extraction issue not a wrong answer"},
+      {"filename": "49153.png", "question": "chart value", "anls": null, "note": "still did not finish reasoning even at 2000 output tokens - input token cost stayed identical (1827) regardless"}
+    ]
+  }
+}
