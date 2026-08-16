@@ -42,8 +42,19 @@ def fixed_ratio_crop(image_path: str | Path, keep_fraction: float = 0.6) -> byte
     return buf.getvalue()
 
 
-# Baseline 4 (provider low-detail mode) and 5 (OCR-everything) are not pixel
-# transforms — baseline 4 is a request-time flag on the provider call
-# (e.g. Anthropic doesn't expose one; OpenAI's `detail: "low"` does — implement
-# per-provider in harness/providers.py when that provider is wired in), and
-# baseline 5 lives in textpath/ once OCR is implemented.
+# Baseline 4 (provider low-detail mode) is not a pixel transform — it's a
+# request-time flag on the provider call. For Gemini, that's the
+# `media_resolution` config field, which GeminiProvider.call(**settings)
+# already passes straight through to GenerateContentConfig (no code change
+# needed there). Verified with real API calls (2026-08-16): on a 1000x1000
+# image, MEDIA_RESOLUTION_LOW dropped Gemini's cost from the default flat 258
+# tokens to 74 tokens — a real, working lever, and notably the FIRST thing
+# found that changes Gemini's image cost at all (see pixelpath/packing.py's
+# module docstring — the default/unspecified resolution is flat regardless
+# of size/content, but explicit resolution levels do vary cost). Usage:
+# provider.call(image_path, prompt, media_resolution="MEDIA_RESOLUTION_LOW").
+# Anthropic doesn't expose an equivalent flag as of this writing.
+GEMINI_LOW_DETAIL_SETTINGS = {"media_resolution": "MEDIA_RESOLUTION_LOW"}
+
+# Baseline 5 (OCR-everything) lives in baselines/ocr_everything.py — separate
+# module since it returns OCR text, not transformed image bytes.

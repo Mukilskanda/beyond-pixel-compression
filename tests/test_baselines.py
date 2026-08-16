@@ -1,6 +1,7 @@
 from PIL import Image
 
 from baselines.baselines import (
+    GEMINI_LOW_DETAIL_SETTINGS,
     fixed_ratio_crop,
     jpeg_quality_reduction,
     uniform_downscale,
@@ -50,3 +51,14 @@ def test_fixed_ratio_crop_smaller_than_original(sample_image):
 
     assert cropped.width < original.width
     assert cropped.height < original.height
+
+
+def test_gemini_low_detail_settings_shape():
+    """Baseline 4 (provider low-detail mode) is a request-time settings dict,
+    not a pixel transform — verify it has the shape GeminiProvider.call()
+    expects to pass through to GenerateContentConfig. Real-cost verification
+    (258 -> 74 tokens on a 1000x1000 image, confirmed through GeminiProvider
+    itself) was done with a live API call and is not re-run here to avoid
+    spending free-tier quota on every test run — see baselines.py's comment
+    and paper/draft.md for the real numbers."""
+    assert GEMINI_LOW_DETAIL_SETTINGS == {"media_resolution": "MEDIA_RESOLUTION_LOW"}
