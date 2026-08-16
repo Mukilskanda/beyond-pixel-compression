@@ -1,6 +1,6 @@
 """Provider wrappers for vision API calls. Version-stamped for reproducibility.
 
-Three backends behind one interface:
+Four backends behind one interface:
 - OllamaProvider: free, local, unlimited — use for pipeline development.
 - AnthropicProvider: real hosted API, paid — use for measurement runs that
   produce the paper's numbers (token counts are ground truth from usage field).
@@ -10,6 +10,16 @@ Three backends behind one interface:
   possibly different tokenization/billing than paid tier) may not represent
   paid-tier production behavior — flag this explicitly wherever free-tier
   numbers inform a methodology decision, don't silently generalize them.
+  Also NOTE: free-tier quota is 20 requests/day/model (confirmed from a live
+  429 error body), not the 15 RPM/1500 RPD figure general Gemini API docs
+  state — don't rediscover this the hard way in a future session.
+- OpenAIProvider: real hosted API, no reliable free tier as of this writing
+  (new accounts may or may not get trial credit — don't assume $0). OpenAI's
+  image tokenization is well-documented as tile-based and scales with
+  resolution — the intended contrast case against Gemini's apparently-flat
+  behavior (see pixelpath/packing.py and paper/draft.md §7/§10 for why this
+  comparison matters). Real spend — get explicit user sign-off on a specific
+  dollar cap before making any call, same discipline as Anthropic.
 """
 from __future__ import annotations
 
@@ -146,6 +156,84 @@ class GeminiProvider:
             latency_s=latency,
             model=self.model,
             raw=response.model_dump() if hasattr(response, "model_dump") else {},
+        )
+
+        if self.cache is not None:
+            self.cache.put(image_bytes, self.model, settings_key, result.__dict__)
+
+        return result
+
+
+class OpenAIProvider:
+    """Real hosted API. Token counts come from response.usage — ground truth
+    per §3.3, same as AnthropicProvider/GeminiProvider. No reliable free
+    tier — treat every call as real spend unless you've independently
+    confirmed trial credit on the account being used.
+
+    Auth: reads OPENAI_API_KEY from the environment automatically (standard
+    openai-python SDK behavior, confirmed in SDK source).
+
+    The `detail` parameter ("low", "high", or "auto") controls OpenAI's
+    documented tile-based image cost — this is the OpenAI equivalent of
+    Gemini's media_resolution lever. Pass it as a call()/settings kwarg
+    (`provider.call(path, prompt, detail="low")`); it's routed into the
+    image_url content part, not passed through to chat.completions.create()
+    directly (unlike other settings, which do pass straight through).
+    """
+
+    def __init__(self, model: str = "gpt-4o-mini", cache: ResponseCache | None = None):
+        self.model = model
+        self.cache = cache
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            import openai
+            self._client = openai.OpenAI()
+        return self._client
+
+    def call(self, image_path: str | Path, prompt: str, media_type: str = "image/png", **settings: Any) -> CallResult:
+        image_bytes = Path(image_path).read_bytes()
+        settings_key = {"prompt": prompt, **settings}
+
+        if self.cache is not None:
+            cached = self.cache.get(image_bytes, self.model, settings_key)
+            if cached is not None:
+                return CallResult(**cached)
+
+        image_b64 = base64.standard_b64encode(image_bytes).decode()
+        detail = settings.pop("detail", None)  # "low" | "high" | "auto" — OpenAI's media_resolution equivalent
+        max_tokens = settings.pop("max_tokens", 1024)
+
+        image_url: dict[str, Any] = {"url": f"data:{media_type};base64,{image_b64}"}
+        if detail is not None:
+            image_url["detail"] = detail
+
+        start = time.monotonic()
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": image_url},
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+            **settings,
+        )
+        latency = time.monotonic() - start
+
+        text = response.choices[0].message.content or ""
+        usage = response.usage
+        result = CallResult(
+            text=text,
+            input_tokens=usage.prompt_tokens if usage else None,
+            output_tokens=usage.completion_tokens if usage else None,
+            latency_s=latency,
+            model=response.model,
+            raw=response.model_dump(),
         )
 
         if self.cache is not None:
