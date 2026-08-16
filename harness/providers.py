@@ -13,13 +13,16 @@ Four backends behind one interface:
   Also NOTE: free-tier quota is 20 requests/day/model (confirmed from a live
   429 error body), not the 15 RPM/1500 RPD figure general Gemini API docs
   state — don't rediscover this the hard way in a future session.
-- OpenAIProvider: real hosted API, no reliable free tier as of this writing
-  (new accounts may or may not get trial credit — don't assume $0). OpenAI's
-  image tokenization is well-documented as tile-based and scales with
-  resolution — the intended contrast case against Gemini's apparently-flat
-  behavior (see pixelpath/packing.py and paper/draft.md §7/§10 for why this
-  comparison matters). Real spend — get explicit user sign-off on a specific
-  dollar cap before making any call, same discipline as Anthropic.
+- GroqProvider: real hosted API, free tier (no credit card at
+  console.groq.com). Second provider for the cross-provider mechanism check
+  (paper/draft.md §9) — chosen after OpenAI was dropped (no approved budget)
+  and the originally-planned model (Llama 4 Scout vision) turned out to have
+  been shut down by Groq on 2026-07-17, before this project could use it.
+  Currently configured for qwen/qwen3.6-27b, Groq's vision-capable model as
+  of this writing. NOTE: verify token usage is actually populated before
+  trusting any number from this provider — preview/vision models on fast
+  inference platforms have been known to have incomplete metering; this was
+  explicitly checked before use (see paper/draft.md §9).
 """
 from __future__ import annotations
 
@@ -164,24 +167,26 @@ class GeminiProvider:
         return result
 
 
-class OpenAIProvider:
-    """Real hosted API. Token counts come from response.usage — ground truth
-    per §3.3, same as AnthropicProvider/GeminiProvider. No reliable free
-    tier — treat every call as real spend unless you've independently
-    confirmed trial credit on the account being used.
+class GroqProvider:
+    """Real hosted API, free tier (no credit card required at
+    console.groq.com). OpenAI-compatible chat-completions shape, so this
+    mirrors OpenAIProvider's request/response handling. Token counts come
+    from response.usage — but VERIFY this is actually populated with real
+    numbers before trusting it for cost-model work (see class-level
+    docstring in providers.py module header — preview/vision models have
+    been known to have incomplete metering; do not assume it works just
+    because the SDK's type definition has the fields).
 
-    Auth: reads OPENAI_API_KEY from the environment automatically (standard
-    openai-python SDK behavior, confirmed in SDK source).
+    Auth: reads GROQ_API_KEY from the environment automatically (standard
+    groq-python SDK behavior, confirmed in SDK source).
 
-    The `detail` parameter ("low", "high", or "auto") controls OpenAI's
-    documented tile-based image cost — this is the OpenAI equivalent of
-    Gemini's media_resolution lever. Pass it as a call()/settings kwarg
-    (`provider.call(path, prompt, detail="low")`); it's routed into the
-    image_url content part, not passed through to chat.completions.create()
-    directly (unlike other settings, which do pass straight through).
+    The `detail` parameter ("low", "high", or "auto") mirrors OpenAI's
+    image_url.detail field structurally (Groq's API is OpenAI-compatible),
+    but whether Qwen3.6-27B on Groq actually respects it and changes real
+    cost has not been assumed — verify empirically before relying on it.
     """
 
-    def __init__(self, model: str = "gpt-4o-mini", cache: ResponseCache | None = None):
+    def __init__(self, model: str = "qwen/qwen3.6-27b", cache: ResponseCache | None = None):
         self.model = model
         self.cache = cache
         self._client = None
@@ -189,8 +194,8 @@ class OpenAIProvider:
     @property
     def client(self):
         if self._client is None:
-            import openai
-            self._client = openai.OpenAI()
+            import groq
+            self._client = groq.Groq()
         return self._client
 
     def call(self, image_path: str | Path, prompt: str, media_type: str = "image/png", **settings: Any) -> CallResult:
@@ -203,7 +208,7 @@ class OpenAIProvider:
                 return CallResult(**cached)
 
         image_b64 = base64.standard_b64encode(image_bytes).decode()
-        detail = settings.pop("detail", None)  # "low" | "high" | "auto" — OpenAI's media_resolution equivalent
+        detail = settings.pop("detail", None)  # "low" | "high" | "auto" — may or may not be respected, verify
         max_tokens = settings.pop("max_tokens", 1024)
 
         image_url: dict[str, Any] = {"url": f"data:{media_type};base64,{image_b64}"}
