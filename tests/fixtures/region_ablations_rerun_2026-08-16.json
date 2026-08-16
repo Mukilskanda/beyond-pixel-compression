@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "n_samples": 40,
+    "cost_usd": 0,
+    "purpose": "Re-verify region-selection ablations at larger real-data scale (was 5-10 samples, now 40)"
+  },
+  "dp_vs_greedy": {
+    "total_combos": 120,
+    "differences": 0,
+    "matches_original_finding": true
+  },
+  "early_vs_late_discard": {
+    "total_samples": 40,
+    "changed": 31,
+    "changed_fraction": 0.775,
+    "mean_top4_overlap_when_changed": 0.6370967741935484
+  },
+  "saliency_method": {
+    "n_samples_used": 40,
+    "mean_ratio_spectral_residual": 1.4796579959072098,
+    "mean_ratio_fine_grained": 2.162893190081946,
+    "fine_grained_higher_on_average": true
+  }
+}
