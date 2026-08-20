@@ -207,6 +207,62 @@ class GeminiProvider:
 
         return result
 
+    def call_text_only(self, text: str, prompt: str, **settings: Any) -> CallResult:
+        """The pure-TEXT-route call this project's own runner never had:
+        harness/runner.py's real sweeps only ever call provider.call(image_path,
+        question), which always attaches an image — router/rules.py's Route.TEXT
+        (image_bytes=None) has never actually reached a real API request before
+        this method existed. Sends `text` (e.g. compressed OCR markdown) and
+        `prompt` (the question) as text-only content, no image at all, so the
+        real billed cost of skipping the image entirely can finally be measured
+        against §5/§9.4's image-only and OCR-added-on-top-of-image numbers.
+
+        Cached like image calls, but keyed on the text content's hash instead
+        of an image hash (ResponseCache.get/put take `image_bytes` positionally
+        — reused here by encoding the text; the parameter name is a misnomer
+        for this call path, not a type mismatch).
+        """
+        from google.genai import types
+
+        combined = f"{text}\n\n{prompt}"
+        content_bytes = combined.encode("utf-8")
+        settings_key = {"prompt": prompt, "text_only": True, **settings}
+
+        if self.cache is not None:
+            cached = self.cache.get(content_bytes, self.model, settings_key)
+            if cached is not None:
+                return CallResult(**cached)
+
+        config = types.GenerateContentConfig(**settings) if settings else None
+
+        start = time.monotonic()
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=[combined],
+            config=config,
+        )
+        latency = time.monotonic() - start
+
+        usage = response.usage_metadata
+        finish_reason = None
+        if getattr(response, "candidates", None):
+            fr = getattr(response.candidates[0], "finish_reason", None)
+            finish_reason = str(fr).lower() if fr is not None else None
+        result = CallResult(
+            text=response.text or "",
+            input_tokens=usage.prompt_token_count if usage else None,
+            output_tokens=usage.candidates_token_count if usage else None,
+            latency_s=latency,
+            model=self.model,
+            raw=response.model_dump() if hasattr(response, "model_dump") else {},
+            finish_reason=finish_reason,
+        )
+
+        if self.cache is not None:
+            self.cache.put(content_bytes, self.model, settings_key, result.__dict__)
+
+        return result
+
 
 class GroqProvider:
     """Real hosted API, free tier (no credit card required at
@@ -286,6 +342,50 @@ class GroqProvider:
 
         if self.cache is not None:
             self.cache.put(image_bytes, self.model, settings_key, result.__dict__)
+
+        return result
+
+    def call_text_only(self, text: str, prompt: str, **settings: Any) -> CallResult:
+        """See GeminiProvider.call_text_only's docstring — same rationale:
+        harness/runner.py never exercises Route.TEXT against a real API,
+        since provider.call() always attaches an image. This sends `text`
+        (e.g. compressed OCR markdown) plus `prompt` with no image content
+        at all, OpenAI-compatible text-only message shape."""
+        combined = f"{text}\n\n{prompt}"
+        content_bytes = combined.encode("utf-8")
+        settings_key = {"prompt": prompt, "text_only": True, **settings}
+
+        if self.cache is not None:
+            cached = self.cache.get(content_bytes, self.model, settings_key)
+            if cached is not None:
+                return CallResult(**cached)
+
+        max_tokens = settings.pop("max_tokens", 1024)
+
+        start = time.monotonic()
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": combined}],
+            **settings,
+        )
+        latency = time.monotonic() - start
+
+        text_out = response.choices[0].message.content or ""
+        usage = response.usage
+        raw_finish_reason = getattr(response.choices[0], "finish_reason", None)
+        result = CallResult(
+            text=text_out,
+            input_tokens=usage.prompt_tokens if usage else None,
+            output_tokens=usage.completion_tokens if usage else None,
+            latency_s=latency,
+            model=response.model,
+            raw=response.model_dump(),
+            finish_reason=str(raw_finish_reason).lower() if raw_finish_reason is not None else None,
+        )
+
+        if self.cache is not None:
+            self.cache.put(content_bytes, self.model, settings_key, result.__dict__)
 
         return result
 

@@ -4,8 +4,27 @@ from __future__ import annotations
 import re
 
 
+_THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", re.IGNORECASE | re.DOTALL)
+
+
+def _strip_think_block(s: str) -> str:
+    """Drop a reasoning-model's <think>...</think> preamble before scoring.
+
+    Found via the qwen/qwen3.6-27b case (paper/draft.md §9.4, §12.4): a
+    response containing the correct answer ("UNIVERSITY OF CALIFORNIA, SAN
+    DIEGO") verbatim, wrapped inside a <think> block, scored anls=0.0
+    because the metric compared against the whole raw text including the
+    reasoning preamble — not a fidelity failure, a scoring-input bug. Only
+    strips a *closed* block; an unclosed one (the model still reasoning
+    when output was cut off) is a genuine truncation case already handled
+    separately by is_truncated()/finish_reason, not something this
+    function should silently paper over.
+    """
+    return _THINK_BLOCK_RE.sub("", s).strip()
+
+
 def _normalize(s: str) -> str:
-    return re.sub(r"\s+", " ", s.strip().lower())
+    return re.sub(r"\s+", " ", _strip_think_block(s).strip().lower())
 
 
 def exact_match(prediction: str, ground_truths: list[str]) -> bool:

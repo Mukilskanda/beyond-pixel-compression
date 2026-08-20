@@ -57,6 +57,38 @@ def test_route_returns_valid_enum(sample_image, photo_like_image):
         assert r in (Route.TEXT, Route.PIXEL, Route.HYBRID)
 
 
+def test_route_fires_text_on_real_sparse_docvqa_sample():
+    """Regression test for the fixed TEXT-route gap (router/rules.py docstring):
+    before the fix, whitespace_ratio > 0.85 never fired on any real scan.
+    These feature values are real, measured (not synthetic) — question_id
+    16424 from lmms-lab/DocVQA validation, profiled 2026-08-18
+    (text_density=0.0087, whitespace_ratio=0.7734) — one of the sparser
+    documents in a 40-sample real profiling run. It must now route TEXT."""
+    feats = ProfileFeatures(
+        text_density=0.0087,
+        whitespace_ratio=0.7734,
+        layout_regularity=0.0,
+        color_entropy=0.0,
+        spatial_variance=0.0,
+    )
+    assert route(feats, "what is the date on this document?") == Route.TEXT
+
+
+def test_route_still_hybrid_on_real_dense_docvqa_sample():
+    """Companion to the sparse-sample test above: a denser real sample
+    (question_id 24580, text_density=0.2149, whitespace_ratio=0.1797) must
+    stay HYBRID/PIXEL, not flip to TEXT — the fix narrows the gap, it
+    doesn't make everything route TEXT."""
+    feats = ProfileFeatures(
+        text_density=0.2149,
+        whitespace_ratio=0.1797,
+        layout_regularity=0.0,
+        color_entropy=0.0,
+        spatial_variance=0.0,
+    )
+    assert route(feats, "what is the date on this document?") != Route.TEXT
+
+
 def test_query_conditioning_ablation_ignores_spatial_intent(sample_image):
     """With query_conditioning=False, a spatial-intent query ('how many...')
     must not trigger the spatial override — routing depends on image features

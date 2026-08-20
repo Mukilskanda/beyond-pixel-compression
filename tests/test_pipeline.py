@@ -75,3 +75,20 @@ def test_build_payload_text_route_has_no_image_bytes(sample_image, monkeypatch):
     assert payload.route == Route.TEXT
     assert payload.image_bytes is None
     assert payload.text_context is not None
+
+
+@requires_tesseract
+def test_build_payload_compress_ocr_toggle_changes_text_context(sample_image, monkeypatch):
+    """compress_ocr=False (the raw-vs-compressed A/B hook) must skip
+    textpath/compress.py entirely, not just no-op silently."""
+    monkeypatch.setattr(pipeline_module, "route", lambda features, query: Route.TEXT)
+
+    compressed = build_payload(sample_image, "what does this say?", compress_ocr=True)
+    raw = build_payload(sample_image, "what does this say?", compress_ocr=False)
+
+    from textpath.ocr import image_to_markdown
+    from textpath.compress import compress_markdown
+
+    expected_raw = image_to_markdown(sample_image).markdown
+    assert raw.text_context == expected_raw
+    assert compressed.text_context == compress_markdown(expected_raw)

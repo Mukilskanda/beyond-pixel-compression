@@ -24,7 +24,7 @@ class Payload:
     pixel_budget: int  # actual budget used (adaptive or the caller's override) — exposed for logging/ablation
 
 
-def build_payload(image_path: str | Path, query: str, pixel_budget: int | None = None) -> Payload:
+def build_payload(image_path: str | Path, query: str, pixel_budget: int | None = None, compress_ocr: bool = True) -> Payload:
     """Run the full v1 pipeline and produce whatever goes into the actual API call.
 
     `pixel_budget`: None (default) uses profiler/budget.py's adaptive
@@ -35,6 +35,13 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
     (and budget.py's own docstring) is meant to solve — budget.py existed
     and was tested in isolation but was never actually wired into the
     pipeline that uses it.
+
+    `compress_ocr`: True (default) runs textpath/compress.py's dedup/
+    whitespace-collapse over OCR markdown before it reaches the prompt — the
+    actual token-reduction lever this project has, since image tokens were
+    already proven flat/invariant to pixel-space tricks (paper/draft.md §5,
+    §9.4). Set False for the raw-vs-compressed A/B comparison the real-call
+    validation experiment needs (plan step 5).
     """
     features = profile_image(image_path)
     chosen_route = route(features, query)
@@ -43,7 +50,8 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
     if chosen_route == Route.TEXT:
         from textpath.ocr import image_to_markdown
         ocr_result = image_to_markdown(image_path)
-        return Payload(route=chosen_route, image_bytes=None, text_context=ocr_result.markdown, features=features, pixel_budget=resolved_budget)
+        text_context = _maybe_compress(ocr_result.markdown, compress_ocr)
+        return Payload(route=chosen_route, image_bytes=None, text_context=text_context, features=features, pixel_budget=resolved_budget)
 
     if chosen_route == Route.HYBRID:
         from textpath.ocr import image_to_markdown
@@ -58,7 +66,8 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
         # the region-merging/packing upgrade (pixelpath/packing.py, week 6).
         from baselines.baselines import uniform_downscale
         low_res = uniform_downscale(image_path, scale=0.5)
-        return Payload(route=chosen_route, image_bytes=low_res, text_context=ocr_result.markdown, features=features, pixel_budget=resolved_budget)
+        text_context = _maybe_compress(ocr_result.markdown, compress_ocr)
+        return Payload(route=chosen_route, image_bytes=low_res, text_context=text_context, features=features, pixel_budget=resolved_budget)
 
     # Route.PIXEL
     from pixelpath.regions import propose_regions, greedy_select
@@ -68,3 +77,10 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
     # v1: send full image; cropping to `selected` regions is the packing.py upgrade.
     image_bytes = unreduced(image_path)
     return Payload(route=chosen_route, image_bytes=image_bytes, text_context=None, features=features, pixel_budget=resolved_budget)
+
+
+def _maybe_compress(markdown: str, compress_ocr: bool) -> str:
+    if not compress_ocr:
+        return markdown
+    from textpath.compress import compress_markdown
+    return compress_markdown(markdown)

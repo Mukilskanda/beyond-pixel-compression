@@ -23,12 +23,19 @@ class OCRResult:
         return sum(self.word_confidences) / len(self.word_confidences) if self.word_confidences else 0.0
 
 
-def image_to_markdown(image_path: str | Path) -> OCRResult:
+def image_to_markdown(image_path: str | Path, min_confidence: float = 0.0) -> OCRResult:
     """Emit reading-order text grouped into paragraphs by vertical gaps.
 
     This is the naive baseline: line-by-line text with paragraph breaks on
     large vertical whitespace. Table structure detection (PP-Structure or
     LayoutParser) is a week-3/4 upgrade — see plan §Stage 3a.
+
+    `min_confidence` (Tesseract's 0-100 scale) drops low-confidence word
+    guesses before they ever reach the prompt — the cheapest place to cut
+    text tokens, since a misread word costs the same tokens as a correct one
+    but only adds noise. Default 0.0 keeps the old behavior (every word with
+    conf >= 0 is kept); see textpath/compress.py for the rest of the
+    token-reduction pipeline (dedup, whitespace collapse) that runs after this.
     """
     img = Image.open(image_path)
     data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
@@ -42,7 +49,7 @@ def image_to_markdown(image_path: str | Path) -> OCRResult:
     for i in range(n):
         word = data["text"][i].strip()
         conf = float(data["conf"][i])
-        if not word or conf < 0:
+        if not word or conf < max(0.0, min_confidence):
             continue
         line_id = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
         top = data["top"][i]

@@ -69,3 +69,32 @@ def test_anls_empty_ground_truth_list_scores_zero_not_silently_skipped():
     silently return a passing score - confirms the metric doesn't
     special-case empty ground truth as an automatic match."""
     assert anls("some answer", [""]) == 0.0
+
+
+# --- <think>-block stripping (paper/draft.md §12.4) ---
+# Regression coverage for the real qwen/qwen3.6-27b case found during the
+# real-billing validation run: a correct answer wrapped in a <think> block
+# scored anls=0.0 because the metric compared against the raw text
+# including the reasoning preamble, not because the answer was wrong.
+
+def test_anls_strips_closed_think_block_before_scoring():
+    prediction = "<think>Let me look at the letterhead. It says UNIVERSITY OF CALIFORNIA.</think>\nUniversity of California, San Diego"
+    assert anls(prediction, ["University of California, San Diego"]) == 1.0
+
+
+def test_exact_match_strips_closed_think_block_before_scoring():
+    prediction = "<think>reasoning about the answer here</think>\nParis"
+    assert exact_match(prediction, ["Paris"])
+
+
+def test_anls_does_not_strip_unclosed_think_block():
+    """An unclosed <think> block means the response was genuinely cut off
+    mid-reasoning (a truncation case, handled separately by is_truncated())
+    - stripping it here would silently hide that instead of surfacing it."""
+    prediction = "<think>still reasoning and never reached an answer"
+    assert anls(prediction, ["University of California, San Diego"]) == 0.0
+
+
+def test_anls_think_block_stripping_is_case_insensitive():
+    prediction = "<THINK>reasoning</THINK>\nParis"
+    assert anls(prediction, ["Paris"]) == 1.0
