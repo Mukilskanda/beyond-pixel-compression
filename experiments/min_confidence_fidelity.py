@@ -28,9 +28,9 @@ from textpath.ocr import image_to_markdown
 MIN_CONFIDENCE_FILTERED = 60
 
 
-def run(n: int, max_tokens: int = 1500, sleep_s: float = 3.0) -> None:
-    print(f"Loading {n} real DocVQA samples...")
-    samples = load_docvqa(limit=n)
+def run(n: int, max_tokens: int = 1500, sleep_s: float = 3.0, offset: int = 0) -> None:
+    print(f"Loading {offset + n} real DocVQA samples (using [{offset}:{offset + n}])...")
+    samples = load_docvqa(limit=offset + n)[offset:]
 
     cache = ResponseCache("results/cache.sqlite")
     provider = GroqProvider(cache=cache)
@@ -79,5 +79,6 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, required=True)
     parser.add_argument("--max-tokens", type=int, default=1500)
     parser.add_argument("--sleep-s", type=float, default=3.0)
+    parser.add_argument("--offset", type=int, default=0)
     args = parser.parse_args()
-    run(args.n, max_tokens=args.max_tokens, sleep_s=args.sleep_s)
+    run(args.n, max_tokens=args.max_tokens, sleep_s=args.sleep_s, offset=args.offset)

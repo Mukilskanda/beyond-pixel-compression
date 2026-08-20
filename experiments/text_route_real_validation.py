@@ -37,9 +37,9 @@ from textpath.ocr import image_to_markdown
 PROVIDERS = {"gemini": GeminiProvider, "groq": GroqProvider}
 
 
-def run(provider_name: str, n: int, max_tokens: int = 1024) -> None:
-    print(f"Loading {n} real DocVQA samples...")
-    samples = load_docvqa(limit=n)
+def run(provider_name: str, n: int, max_tokens: int = 1024, offset: int = 0) -> None:
+    print(f"Loading {offset + n} real DocVQA samples (using [{offset}:{offset + n}])...")
+    samples = load_docvqa(limit=offset + n)[offset:]
 
     cache = ResponseCache("results/cache.sqlite")
     provider = PROVIDERS[provider_name](cache=cache)
@@ -92,5 +92,6 @@ if __name__ == "__main__":
     parser.add_argument("--provider", choices=list(PROVIDERS), required=True)
     parser.add_argument("--n", type=int, required=True)
     parser.add_argument("--max-tokens", type=int, default=1024, help="raise past qwen3.6-27b's <think> preamble (paper/draft.md §9.4, §12.4)")
+    parser.add_argument("--offset", type=int, default=0, help="skip the first N DocVQA samples (use to extend a prior run with new samples)")
     args = parser.parse_args()
-    run(args.provider, args.n, max_tokens=args.max_tokens)
+    run(args.provider, args.n, max_tokens=args.max_tokens, offset=args.offset)

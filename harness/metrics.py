@@ -77,7 +77,14 @@ def is_truncated(finish_reason: str | None) -> bool:
 
 
 def answer_agreement(reduced_answer: str, unreduced_answer: str) -> bool:
-    """Cheap proxy: exact-match after normalization. Replace with judge-model call for production use."""
+    """Cheap proxy: exact-match after normalization, comparing two answers
+    to EACH OTHER (not to ground truth) - use this only when there's no
+    ground-truth label to judge against. For real fidelity-against-ground-
+    truth scoring, use harness.judge.judge_correctness(), which is what
+    this docstring used to flag as missing ("replace with judge-model call
+    for production use") - added after ANLS was found (paper/draft.md
+    §9.4, §12.4-12.5) to penalize a correct-but-verbose answer the same as
+    a genuinely wrong one."""
     return _normalize(reduced_answer) == _normalize(unreduced_answer)
 
 
