@@ -38,19 +38,37 @@ DATASETS = {"docvqa": load_docvqa, "chartqa": load_chartqa}
 JUDGE_MODEL = "openai/gpt-oss-120b"
 
 
+def scale_max_tokens(base_max_tokens: int, n: int) -> int:
+    """Regression fix for a real bug found in this project (§13.5/§13.6):
+    a fixed max_tokens=500 was fine through N<=6 but at N=8, qwen/qwen3.6-27b
+    burns hundreds to thousands of tokens on step-by-step grid-navigation
+    reasoning ("Wait, let me recheck the layout...") before ever reaching
+    an answer - 6/8 real calls truncated at max_tokens=500, and 3/8 STILL
+    truncated at max_tokens=2500. Grid-navigation reasoning cost grows with
+    N (more tiles = more positions to disambiguate), so a fixed budget
+    that worked at low N silently produces truncated-not-wrong answers at
+    higher N - the same class of bug as the original qwen <think>-preamble
+    issue (§9.4), recurring because it scales with a different variable
+    (grid complexity, not just "reasoning model or not"). Scales linearly
+    with N as a simple, real mitigation - not proven sufficient at every N,
+    but a real improvement over a constant that was measured to fail.
+    """
+    return base_max_tokens + n * 250
+
+
 def run(provider_name: str, ns: list[int], dataset_name: str = "docvqa", max_tokens: int = 500, sleep_s: float = 2.0) -> None:
     max_n = max(ns)
     print(f"Loading {max_n} real {dataset_name} samples...")
     samples = DATASETS[dataset_name](limit=max_n)
 
     cache = ResponseCache("results/cache.sqlite")
-    extra = {"max_tokens": max_tokens} if provider_name == "groq" else {}
     provider = PROVIDERS[provider_name](cache=cache)
     judge = GroqProvider(model=JUDGE_MODEL, cache=cache)
     db = ResultDB("results/results.sqlite")
 
     results = []
     for n in ns:
+        extra = {"max_tokens": scale_max_tokens(max_tokens, n)} if provider_name == "groq" else {}
         subset = samples[:n]
         grid = tile_images([s.image_path for s in subset], tile_size=(600, 800))
         tmp_path = Path("data/scratch") / f"fidelity_tile_{dataset_name}_n{n}_{provider_name}.png"
