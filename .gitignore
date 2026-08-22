@@ -11,3 +11,5 @@ data/chartqa_cache/
 data/synthetic/
 data/scratch/
 !data/.gitkeep
+
+extension/test/chrome-profile*/

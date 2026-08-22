@@ -67,7 +67,22 @@ baselines/     All 6 non-trivial baselines from plan §3.2
 experiments/   Per-experiment configs
 results/       SQLite (cache.sqlite, results.sqlite) + generated plots
 data/          Dataset loaders and local extractions (gitignored)
+extension/     Browser extension applying §13's tiling finding to real uploads
+               (Manifest V3, Chrome/Edge) - see extension/README.md
 ```
+
+## Browser extension (real-world application)
+
+`extension/` is a working, end-to-end-tested browser extension ("TileSaver")
+that applies `paper/draft.md` §13's tiling finding to real image uploads:
+select 2+ images anywhere on the web, and it offers to combine them into one
+tiled image before you send them, which reduces real per-call cost on
+providers with flat per-image billing (proven for Gemini/Groq API calls;
+honestly scoped as unverified for flat-rate consumer chat subscriptions in
+the extension's own popup UI). See `extension/README.md` for the full
+methodology, honest scope, and the Playwright test harness that verifies it
+actually works end to end (banner appears, combine succeeds, output image is
+correct, popup renders, settings work).
 
 ## Quick smoke test
 
