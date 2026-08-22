@@ -8,6 +8,8 @@ __pycache__/
 data/docvqa/
 data/docvqa_cache/
 data/chartqa_cache/
+data/mpdocvqa_cache/
+data/textvqa_cache/
 data/synthetic/
 data/scratch/
 !data/.gitkeep
