@@ -13,8 +13,9 @@ def test_returns_false_for_all_when_unset(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     status = credentials_status()
-    assert status == {"GEMINI_API_KEY": False, "GROQ_API_KEY": False, "ANTHROPIC_API_KEY": False}
+    assert status == {"GEMINI_API_KEY": False, "GROQ_API_KEY": False, "ANTHROPIC_API_KEY": False, "OPENROUTER_API_KEY": False}
 
 
 def test_returns_true_only_for_set_keys(monkeypatch):

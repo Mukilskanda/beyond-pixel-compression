@@ -1,4 +1,4 @@
-results/*.sqlite
+# results/*.sqlite is published: the paper cites these logs (scanned: no keys, no org IDs)
 results/*.png
 __pycache__/
 *.pyc
@@ -15,3 +15,29 @@ data/scratch/
 !data/.gitkeep
 
 extension/test/chrome-profile*/
+
+# Secrets and OS junk
+.env
+.DS_Store
+nul
+
+# Logs (Groq rate-limit errors in these include the account organisation ID)
+*.log
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.blg
+
+# Local paper backups and superseded drafts (not part of the submission)
+paper/indicon_submission_ORIGINAL_backup_*/
+paper/indicon_revision/main_rewrite_v1.tex
+paper/indicon_revision/refs_rewrite_v1.bib
+paper/indicon_revision/main_before_pass2.tex
+reversal_check.txt
+
+# Reviewer correspondence (confidential CMT content; keep local)
+paper/indicon_revision/response_to_reviewers.md

@@ -1,4 +1,15 @@
-# blackbox-vtr
+# Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal APIs
+
+Official repository for the paper provisionally accepted at IEEE INDICON 2026. Contains the client-side router, token measurement harness, and SQLite database of API telemetry.
+
+- Paper source (LaTeX, figures, bibliography): `paper/indicon_revision/`
+- Call logs: `results/results.sqlite` (every request's provider-reported input/output tokens, finish reason, response); `results/cache.sqlite` (cached responses, including judge verdicts)
+- Revision analyses: `experiments/revision_recount.py`, `experiments/revision_table3.py`, `experiments/revision_flip_mechanism.py`
+- API keys are read from a local `.env` (see `.env.example`); no keys are included in this repository.
+
+---
+
+## Development notes (blackbox-vtr)
 
 Client-side visual token reduction under black-box access to multimodal LLM APIs.
 

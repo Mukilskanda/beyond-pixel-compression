@@ -61,6 +61,7 @@ def credentials_status() -> dict[str, bool]:
         "GEMINI_API_KEY": bool(os.environ.get("GEMINI_API_KEY")),
         "GROQ_API_KEY": bool(os.environ.get("GROQ_API_KEY")),
         "ANTHROPIC_API_KEY": bool(os.environ.get("ANTHROPIC_API_KEY")),
+        "OPENROUTER_API_KEY": bool(os.environ.get("OPENROUTER_API_KEY")),
     }
 
 
@@ -386,6 +387,88 @@ class GroqProvider:
 
         if self.cache is not None:
             self.cache.put(content_bytes, self.model, settings_key, result.__dict__)
+
+        return result
+
+
+class OpenRouterProvider:
+    """Real hosted API, genuine free tier (no credit card) on OpenRouter's
+    `:free`-suffixed vision models — OpenAI-compatible chat-completions
+    shape, same as GroqProvider. Third provider for the cross-provider
+    mechanism check, added after the earlier decision to hold this for
+    future work was explicitly reversed by the user.
+
+    Auth: reads OPENROUTER_API_KEY from the environment. Get a free key
+    (no credit card) at openrouter.ai/settings/keys.
+
+    Free-tier limits as documented (verify at openrouter.ai/docs before a
+    real sweep, subject to change): ~20 requests/minute, 50-1000
+    requests/day depending on account standing. This class does not
+    rate-limit for you — space calls out at the call site.
+    """
+
+    def __init__(self, model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", cache: ResponseCache | None = None):
+        self.model = model
+        self.cache = cache
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            import openai
+            self._client = openai.OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=os.environ.get("OPENROUTER_API_KEY"),
+            )
+        return self._client
+
+    def call(self, image_path: str | Path, prompt: str, media_type: str = "image/png", **settings: Any) -> CallResult:
+        image_bytes = Path(image_path).read_bytes()
+        settings_key = {"prompt": prompt, **settings}
+
+        if self.cache is not None:
+            cached = self.cache.get(image_bytes, self.model, settings_key)
+            if cached is not None:
+                return CallResult(**cached)
+
+        image_b64 = base64.standard_b64encode(image_bytes).decode()
+        max_tokens = settings.pop("max_tokens", 1024)
+
+        start = time.monotonic()
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:{media_type};base64,{image_b64}"}},
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+            **settings,
+        )
+        latency = time.monotonic() - start
+
+        text = response.choices[0].message.content or ""
+        usage = response.usage
+        raw_finish_reason = getattr(response.choices[0], "finish_reason", None)
+        # OpenRouter proxies many backends - usage.prompt_tokens is real when
+        # populated, but has been reported unreliable on some free `:free`
+        # routes (whole model may return usage=None). Treat None as "unknown",
+        # never silently substitute a guessed number - matches the standing
+        # rule for Groq's metering (see GroqProvider docstring).
+        result = CallResult(
+            text=text,
+            input_tokens=usage.prompt_tokens if usage else None,
+            output_tokens=usage.completion_tokens if usage else None,
+            latency_s=latency,
+            model=response.model,
+            raw=response.model_dump() if hasattr(response, "model_dump") else {},
+            finish_reason=str(raw_finish_reason).lower() if raw_finish_reason is not None else None,
+        )
+
+        if self.cache is not None:
+            self.cache.put(image_bytes, self.model, settings_key, result.__dict__)
 
         return result
 
