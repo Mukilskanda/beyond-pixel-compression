@@ -13,7 +13,7 @@ Code, call logs and paper source for the IEEE INDICON 2026 paper (provisionally 
 | Downscale, JPEG, crop, low-detail flag | No change in reported image tokens on Gemini 2.5 Flash or Groq Qwen | Sec. IV-A, Table II |
 | Gemini `media_resolution=LOW` | 258 → 74 tokens for the same image (3.5×) | Sec. IV-B |
 | OCR text instead of the image | 11.24× fewer input tokens on Groq/DocVQA, but 30 of 143 correct answers flipped to wrong (2 the other way) | Sec. IV-C, Table III |
-| 4 questions in one tiled call (N=4) | 3.24× fewer input tokens on Groq with unchanged accuracy; 1.44× on Gemini with lower accuracy, against directly measured separate calls | Sec. IV-D, Table IV |
+| 4 questions in one tiled call (N=4) | 3.24× fewer input tokens on Groq with unchanged accuracy; 1.43× on Gemini with lower observed accuracy (9/16 vs. 15/16), against directly measured separate calls | Sec. IV-D, Table IV |
 | Caching (saliency similarity; provider prefix cache) | Unsafe or unreachable | Sec. IV-E |
 
 Flat image billing is endpoint-specific: an OpenRouter model billed three images flat, while its replacement varied by a factor of 3.7 across the same images (Sec. VI). Re-measure before relying on any of these results; three of the models used here were withdrawn during the study.
