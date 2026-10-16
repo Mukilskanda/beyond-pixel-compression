@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the paper."
+title: "Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal APIs"
+authors:
+  - name: "Mukil Skanda A"
+    affiliation: "PES University"
+license: MIT
+preferred-citation:
+  type: conference-paper
+  title: "Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal APIs"
+  authors:
+    - name: "Mukil Skanda A"
+      affiliation: "PES University"
+  collection-title: "Proceedings of the 23rd IEEE India Council International Conference (INDICON 2026)"
+  year: 2026
