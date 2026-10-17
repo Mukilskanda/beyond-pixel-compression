@@ -1,6 +1,11 @@
 # Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal APIs
 
+[![tests](https://github.com/Mukilskanda/beyond-pixel-compression/actions/workflows/tests.yml/badge.svg)](https://github.com/Mukilskanda/beyond-pixel-compression/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Code, call logs and paper source for the IEEE INDICON 2026 paper (Paper ID 4684).
+Paper: [`paper/main.pdf`](paper/main.pdf). The version described in the paper is tag
+[`v1.0-indicon2026`](https://github.com/Mukilskanda/beyond-pixel-compression/tree/v1.0-indicon2026).
 
 Visual-token-reduction methods report savings in FLOPs and latency inside the model. This
 project measures whether client-side image reduction lowers the input tokens that a hosted
