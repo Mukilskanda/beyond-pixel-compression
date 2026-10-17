@@ -18,10 +18,10 @@ against a 100-sample human audit.
 
 | Finding | Headline numbers | Paper |
 |---|---|---|
-| Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq; Gemini flat at 258 image tokens from 10x10 to 8000x8000 px | IV-A, Table II, Fig. 1 |
+| Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq; Gemini flat at 258 image tokens from 10x10 to 8000x8000 px; Groq's per-image cost follows page shape, not pixel area (three levels across 172 images) | IV-A, Table II, Figs. 1-2 |
 | Gemini's resolution mode is the one single-image setting that helps | 258 to 66 image tokens (3.9x) | IV-B |
-| OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way | IV-C, Table III, Fig. 2 |
-| Four questions in one tiled call (N=4) | Groq: 3.24x fewer input tokens, 19/20 correct in both conditions; Gemini: 1.43x, 15/16 vs. 9/16 correct (Fisher p = 0.04) | IV-D, Table IV, Fig. 3 |
+| OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way | IV-C, Table III, Fig. 3 |
+| Four questions in one tiled call (N=4) | Groq: 3.24x fewer input tokens, 19/20 correct in both conditions; Gemini: 1.43x, 15/16 vs. 9/16 correct (Fisher p = 0.04) | IV-D, Table IV, Fig. 4 |
 | Caching | Saliency-similarity cache correct on under 15% of hits; provider prefix caching unreachable | IV-E |
 
 Flat image billing is endpoint-specific: on OpenRouter, a replacement model billed the same
@@ -35,7 +35,8 @@ audit/        100-sample human audit of the judge (seed 42) and the agreement sc
 prompts/      exact judge, batching and per-tile prompt templates
 results/      results.sqlite (one row per API call), cache.sqlite (raw responses,
               judge verdicts, Gemini usage_metadata), revision_table3.jsonl (Table IV),
-              docvqa_forward_flips.md (the 25 DocVQA flips), gemini_size_sweep.md (Fig. 1)
+              docvqa_forward_flips.md (the 25 DocVQA flips), gemini_size_sweep.md (Fig. 1),
+              groq_image_billing.csv (Fig. 2: size and billed tokens of 172 images)
 experiments/  live experiment scripts, mapped to paper sections in experiments/README.md
 src/          pipeline code: harness (providers, cache, judge, metrics, logger),
               router, textpath (OCR), pixelpath (tiling, region selection), profiler,
@@ -68,8 +69,8 @@ not needed for the offline reproduction.
 ./run_all.sh test       # unit tests
 ```
 
-`make tables` and so on work as well. `analysis/reproduce_all.py` checks 120 values
-(Tables II to IV and VI, Fig. 2 and 3, the token ratios and their bootstrap confidence
+`make tables` and so on work as well. `analysis/reproduce_all.py` checks 124 values
+(Tables II to IV and VI, Figs. 2 to 4, the token ratios and their bootstrap confidence
 intervals, the McNemar and Fisher p-values, and the audit kappas) and reports MATCH or
 MISMATCH for each. The paper rounds halves up.
 
@@ -96,7 +97,7 @@ so no invoices exist.
 | Result | Model |
 |---|---|
 | Table II, text-route fidelity and token ratios (Sec. IV-C), N=6/8 ceiling | Groq `qwen/qwen3.6-27b` (withdrawn by Groq on 2026-10-16) |
-| Table IV and Fig. 3 (batching) | Groq `qwen/qwen3.8-27b` |
+| Table IV and Fig. 4 (batching) | Groq `qwen/qwen3.8-27b` |
 | All Gemini results | `gemini-2.5-flash` |
 | Fidelity judge | Groq `openai/gpt-oss-120b`, `reasoning_effort=low`, prompt in `prompts/judge_prompt.txt` |
 
@@ -137,7 +138,7 @@ Code is released under the MIT License (`LICENSE`).
   4 for Gemini, 2 for Groq/ChartQA.
 - The judge agrees with the human audit on 86/100 answers (kappa 0.63), less on DocVQA
   (kappa 0.41) than on ChartQA (0.74), and is slightly lenient.
-- Gemini's dollar saving in Fig. 3 rests on thinking tokens, which vary by call (-17% to
+- Gemini's dollar saving in Fig. 4 rests on thinking tokens, which vary by call (-17% to
   -51% across windows); treat it as indicative.
 
 ## Citation

@@ -86,7 +86,7 @@ def table2() -> None:
 
 # --------------------------------------------------------------- Table III
 def table3_and_tests() -> None:
-    section("Table III / Fig. 2: paired text-route fidelity")
+    section("Table III / Fig. 3: paired text-route fidelity")
     judge = load_judge_cache()
     verdicts = {}
     for key, r in best_rows().items():
@@ -285,7 +285,7 @@ def table4() -> None:
                 "11/10/8",
             )
 
-    section("Fig. 3: USD per 1,000 requests (input + billed output)")
+    section("Fig. 4: USD per 1,000 requests (input + billed output)")
     import make_figures
 
     _, sep, tiled = make_figures.fig_cost_dollars()
@@ -381,6 +381,30 @@ def misc() -> None:
     check("Gemini image tokens, default resolution (Sec. IV-B)", sorted(img["default"]), [258])
     check("Gemini image tokens, low resolution (Sec. IV-B)", sorted(img["MEDIA_RESOLUTION_LOW"]), [66])
     check("Gemini resolution-mode reduction", rhu(258 / 66, 1), 3.9)
+
+    section("Fig. 2: Groq billed tokens vs. image area (results/groq_image_billing.csv)")
+    with open(ROOT / "results/groq_image_billing.csv", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    by_path = {Path(r["image"]).stem: int(r["billed_input_tokens"]) for r in rows}
+    db_tok = {
+        Path(ip.replace("\\", "/")).stem: t
+        for ip, t in db.execute(
+            "SELECT image_path, MIN(input_tokens) FROM runs WHERE method='unreduced' AND model='qwen/qwen3.6-27b' "
+            "AND dataset IN ('docvqa','chartqa') AND truncated=0 GROUP BY image_path"
+        )
+    }
+    check("Fig. 2 CSV tokens match the call log", by_path == db_tok, True)
+    hw = [int(r["height_px"]) / int(r["width_px"]) for r in rows]
+    tok = [int(r["billed_input_tokens"]) for r in rows]
+    lvl = lambda t: 790 if t < 1000 else (1300 if t < 1600 else 1830)  # noqa: E731
+    check(
+        "Fig. 2 near-square (h/w 0.9-1.2) all at ~1,300",
+        sorted({lvl(t) for t, h in zip(tok, hw) if 0.9 <= h <= 1.2}),
+        [1300],
+    )
+    check("Fig. 2 tall (h/w >= 1.8) all at ~790", sorted({lvl(t) for t, h in zip(tok, hw) if h >= 1.8}), [790])
+    top = [int(r["width_px"]) * int(r["height_px"]) / 1e6 for r in rows if lvl(int(r["billed_input_tokens"])) == 1830]
+    check("Fig. 2 top-level area range (MP)", f"{min(top):.2f}-{max(top):.1f}", "0.13-8.1")
 
     section("Table VI: natural images, Gemini and OpenRouter")
     imgs = {"49153": (282, 3368, 3357), "24580": (265, 3351, 909), "57349": (267, 3353, 3291)}

@@ -15,9 +15,9 @@ none of these scripts to be re-run.
 | IV-A, Table VI (Gemini column) | `week2_comparison.py` | Gemini 2.5 Flash | Same samples on Gemini |
 | IV-A, Fig. 1; IV-B | none (ad hoc calls) | Gemini 2.5 Flash | The 12-call image-size sweep was run interactively and not written to the result database; values and method are recorded in `results/gemini_size_sweep.md`. The resolution-mode figures (258 default vs. 66 low-resolution image tokens) are in the cached `usage_metadata` of every Gemini call and checked by `analysis/reproduce_all.py`. `packing_validation.py` is the related check of the local cost model |
 | IV-C, token ratios | `text_route_real_validation.py`, `chartqa_text_route_validation.py` | Qwen3.6-27B, Gemini | Image route vs. OCR text route |
-| IV-C, Table III, Fig. 2 | `judge_rescore.py`, `chartqa_judge_rescore.py`, `paired_fidelity_analysis.py` | judge: `openai/gpt-oss-120b` | Judge verdicts are cached; re-running makes no new calls |
+| IV-C, Table III, Fig. 3 | `judge_rescore.py`, `chartqa_judge_rescore.py`, `paired_fidelity_analysis.py` | judge: `openai/gpt-oss-120b` | Judge verdicts are cached; re-running makes no new calls |
 | IV-C, bootstrap CIs | `evidence_strength_report.py` (uses `fit_text_route_advisor.py`) | none (offline) | Source of the 11.24x / 1.96x confidence intervals |
-| IV-D, Table IV, Fig. 3 | `revision_table3.py` | Qwen3.8-27B, Gemini | Sep / Multi / Tiled / Per-tile, N=4 |
+| IV-D, Table IV, Fig. 4 | `revision_table3.py` | Qwen3.8-27B, Gemini | Sep / Multi / Tiled / Per-tile, N=4 |
 | IV-D, earlier tiling results | `tiling_mechanism_check.py`, `tiling_fidelity_check.py`, `batched_tile_qa_check.py`, `output_format_stacking_check.py` | Qwen3.6-27B, Gemini | N=2 to 12 composite costs and the N=6/8 ceiling |
 | IV-E, caching | `cache_safety_analysis.py`, `cache_safety_analysis_query_aware.py`, `image_caching_viability_check.py` | none / Gemini, Groq | Saliency-similarity cache and provider prefix caching |
 | VI-B, OpenRouter | `text_route_real_validation.py` (`--provider openrouter`) | nemotron models | Table VI OpenRouter columns |

@@ -2,7 +2,7 @@
 # Reproduce the paper's tables, figures and statistics from the logged data.
 # No API keys or network access are needed for these targets.
 #   ./run_all.sh install   create .venv and install pinned requirements
-#   ./run_all.sh tables    regenerate and check every reported number (120 values)
+#   ./run_all.sh tables    regenerate and check every reported number (124 values)
 #   ./run_all.sh figures   regenerate the paper's figures into figures/
 #   ./run_all.sh audit     judge vs. human agreement and Cohen's kappa
 #   ./run_all.sh test      unit tests
