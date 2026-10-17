@@ -144,7 +144,7 @@ Code is released under the MIT License (`LICENSE`).
 
 ```bibtex
 @inproceedings{skanda2026beyondpixel,
-  author    = {Mukil Skanda A},
+  author    = {Mukil Skanda A and Mullunja Stuthi},
   title     = {Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal {APIs}},
   booktitle = {Proc. 23rd IEEE India Council International Conference (INDICON)},
   address   = {Chennai, India},
@@ -155,5 +155,7 @@ Code is released under the MIT License (`LICENSE`).
 
 ## Contact
 
-Mukil Skanda A, Dept. of Computer Science and Engineering, PES University, Bangalore.
-mukil1336@gmail.com
+Mukil Skanda A (corresponding author), mukil1336@gmail.com
+Mullunja Stuthi, stuthi.mullunja@gmail.com
+
+Dept. of Computer Science and Engineering, PES University, Bangalore, India.

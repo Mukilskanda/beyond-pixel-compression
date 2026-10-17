@@ -8,7 +8,10 @@ version = "1.0.0"
 description = "Measuring cost-reduction levers in black-box multimodal APIs (IEEE INDICON 2026)"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Mukil Skanda A", email = "mukil1336@gmail.com" }]
+authors = [
+  { name = "Mukil Skanda A", email = "mukil1336@gmail.com" },
+  { name = "Mullunja Stuthi", email = "stuthi.mullunja@gmail.com" },
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
