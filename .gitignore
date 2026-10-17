@@ -39,3 +39,9 @@ paper/*.zip
 paper/response_to_reviewers.md
 reversal_check.txt
 archive/submitted_version/pgp-8.png
+
+# Build artifacts
+*.egg-info/
+build/
+dist/
+.venv/
