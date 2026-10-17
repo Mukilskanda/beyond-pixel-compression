@@ -1,82 +1,143 @@
 # Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal APIs
 
-Code, call logs and paper source for the IEEE INDICON 2026 paper (provisionally accepted, Paper ID 4684).
+Code, call logs and paper source for the IEEE INDICON 2026 paper (Paper ID 4684).
 
-**Question.** Visual-token-reduction methods (pruning, merging, optical compression) report savings in FLOPs and latency inside the model. Does reducing an image on the client lower the input tokens that a *hosted* API reports for billing?
+Visual-token-reduction methods report savings in FLOPs and latency inside the model. This
+project measures whether client-side image reduction lowers the input tokens that a hosted
+API reports for billing, using the provider's own usage field on Google Gemini 2.5 Flash and
+Groq-hosted Qwen models (free tier). It then measures which client-side levers do lower the
+reported tokens, and what each costs in answer accuracy, judged by an LLM judge validated
+against a 100-sample human audit.
 
-**Method.** Every number comes from the provider's own usage field (`usage.prompt_tokens` on Groq, `usage_metadata.prompt_token_count` on Gemini), logged per call. Billed output is `completion_tokens` on Groq and answer plus thinking tokens (`thoughts_token_count`) on Gemini; `experiments/revision_gemini_thinking.py` and `experiments/revision_textroute_total.py` recompute the thinking-inclusive figures from the cache. All calls used free-tier access, so "cost" means reported tokens; dollar figures apply published paid-tier rates to those counts.
+## Key findings
 
-## Findings
-
-| Lever | Result | Where |
+| Finding | Headline numbers | Paper |
 |---|---|---|
-| Downscale, JPEG, crop, low-detail flag | No change in reported image tokens on Gemini 2.5 Flash or Groq Qwen | Sec. IV-A, Table II |
-| Gemini `media_resolution=LOW` | 258 → 74 tokens for the same image (3.5×) | Sec. IV-B |
-| OCR text instead of the image | 11.24× fewer input tokens on Groq/DocVQA (2.4–2.7× counting output tokens; no total-token saving on Gemini), but 30 of 143 paired answers flipped from correct to wrong (2 the other way) | Sec. IV-C, Table III |
-| 4 questions in one tiled call (N=4) | 3.24× fewer input tokens on Groq with unchanged accuracy; 1.43× on Gemini with lower observed accuracy (9/16 vs. 15/16), against directly measured separate calls | Sec. IV-D, Table IV |
-| Caching (saliency similarity; provider prefix cache) | Unsafe or unreachable | Sec. IV-E |
+| Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq; Gemini flat at 258 image tokens from 10x10 to 8000x8000 px | IV-A, Table II, Fig. 1 |
+| Gemini's resolution mode is the one single-image setting that helps | 258 to 74 tokens (3.5x) | IV-B |
+| OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way | IV-C, Table III, Fig. 2 |
+| Four questions in one tiled call (N=4) | Groq: 3.24x fewer input tokens, 19/20 correct in both conditions; Gemini: 1.43x, 15/16 vs. 9/16 correct (Fisher p = 0.04) | IV-D, Table IV, Fig. 3 |
+| Caching | Saliency-similarity cache correct on under 15% of hits; provider prefix caching unreachable | IV-E |
 
-Flat image billing is endpoint-specific: an OpenRouter model billed three images flat, while its replacement varied by a factor of 3.7 across the same images (Sec. VI). Re-measure before relying on any of these results; three of the models used here were withdrawn during the study.
+Flat image billing is endpoint-specific: on OpenRouter, a replacement model billed the same
+three images with a 3.7x spread (Table VI).
 
 ## Repository layout
 
 ```
-paper/indicon_revision/    Revised paper: main.tex, refs.bib, figures/, make_figures_rev.py, main.pdf
-paper/indicon_submission/  Submitted (anonymised) version and the 100-row human audit of the judge
-paper/draft.md             Full research notebook: every experiment, dead end and correction, in order
-results/results.sqlite     One row per API call: tokens in/out, finish reason, response, timing
-results/cache.sqlite       Content-hash response cache, including all judge verdicts
-results/revision_table3.jsonl  Per-window results behind Table IV
-harness/                   Provider wrappers, cache, judge, metrics, result logger
-experiments/               One script per experiment (see table below)
-textpath/  pixelpath/      OCR route; tiling and region selection
-router/  profiler/  baselines/   Routing rules, image features, the six baselines
-tests/                     212 unit tests (pytest), run in CI
-extension/                 TileSaver: a browser extension that applies the tiling result to uploads
+paper/        LaTeX source (main.tex, refs.bib), figures/, compiled main.pdf
+analysis/     offline scripts that regenerate every reported number and figure
+audit/        100-sample human audit of the judge (seed 42) and the agreement script
+prompts/      exact judge, batching and per-tile prompt templates
+results/      results.sqlite (one row per API call), cache.sqlite (raw responses,
+              judge verdicts, Gemini usage_metadata), revision_table3.jsonl (Table IV),
+              docvqa_forward_flips.md (the 25 DocVQA flips)
+experiments/  live experiment scripts, mapped to paper sections in experiments/README.md
+src/          pipeline code: harness (providers, cache, judge, metrics, logger),
+              router, textpath (OCR), pixelpath (tiling, region selection), profiler,
+              baselines, data (dataset loaders)
+data/         dataset download script and notes (datasets are not redistributed)
+tests/        unit tests (pytest)
+archive/      submitted version of the paper, research notebook, browser extension
+              prototype; not needed to reproduce the paper
 ```
 
-## Reproducing the paper
+## Setup
 
-### 1. Setup
+Python 3.11 or newer (results were produced with 3.13).
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+pip install -e .
 ```
 
-Tesseract is needed for the OCR route: `winget install UB-Mannheim.TesseractOCR` (Windows), `brew install tesseract` (macOS) or `apt install tesseract-ocr` (Linux).
+The OCR route also needs the Tesseract binary: `winget install UB-Mannheim.TesseractOCR`
+(Windows), `brew install tesseract` (macOS) or `apt install tesseract-ocr` (Linux). It is
+not needed for the offline reproduction.
 
-### 2. Offline: recompute the reported numbers from the logs (no API key)
+## Reproduce the paper from the logged data (no API keys)
 
 ```bash
-python experiments/revision_recount.py
+./run_all.sh tables     # regenerates every reported number and checks it against the paper
+./run_all.sh figures    # regenerates paper/figures/*.pdf (byte-identical to the committed files)
+./run_all.sh audit      # judge vs. human agreement and Cohen's kappa
+./run_all.sh test       # unit tests
+./run_all.sh paper      # compiles paper/main.pdf, byte-identical to the committed one (needs pdflatex, bibtex)
 ```
 
-Reads `results/results.sqlite` and the cached judge verdicts in `results/cache.sqlite`, and prints the paired fidelity counts (143 / 146 pairs, 30 / 32 forward flips, 2 reversals), absolute accuracies (Table III), the 101 cost-ratio pairs, and Cohen's kappa for the human audit (0.63, 86/100 agreement). No API calls are made.
+`make tables` and so on work as well. `analysis/reproduce_all.py` checks 117 values
+(Tables II to IV and VI, Fig. 2 and 3, the token ratios and their bootstrap confidence
+intervals, the McNemar and Fisher p-values, and the audit kappas) and reports MATCH or
+MISMATCH for each. The paper rounds halves up.
 
-```bash
-cd paper/indicon_revision && python make_figures_rev.py
-pdflatex main && bibtex main && pdflatex main && pdflatex main
-```
+Two results are not in the result database and cannot be re-checked by the script: the
+12-call Gemini image-size sweep (Fig. 1) and the default vs. low resolution comparison
+(Sec. IV-B). They were run interactively; their values are recorded in
+`archive/research_notebook.md`.
 
-Regenerates Figs. 1-3 from the logged data and builds the PDF.
+### How tokens are counted
 
-### 3. Live: re-run the experiments (API keys required)
+| Provider | Input | Billed output |
+|---|---|---|
+| Groq | `usage.prompt_tokens` | `usage.completion_tokens` (includes any reasoning text; Qwen3.8 returns no separate reasoning field) |
+| Gemini | `usage_metadata.prompt_token_count` | `usage_metadata.candidates_token_count + thoughts_token_count` (thinking was left on, and Google bills it as output) |
 
-Copy `.env.example` to `.env` and fill in the keys you have (Gemini and Groq both offer free tiers). Datasets (DocVQA, ChartQA) are streamed from the HuggingFace Hub on first use and cached under `data/`.
+The logger stored only `candidates_token_count` as Gemini output; the analysis scripts add
+`thoughts_token_count` from the cached raw responses. Dollar figures apply published
+paid-tier rates (Gemini 2.5 Flash $0.30/$2.50, Groq Qwen3.8-27B $0.80/$4.00 per 1M
+input/output tokens, accessed 2026-10-16) to the logged counts; all calls ran on free tiers,
+so no invoices exist.
 
-| Paper element | Command |
+### Which model produced which result
+
+| Result | Model |
 |---|---|
-| Table IV (batching, N=4) | `python experiments/revision_table3.py --provider groq --dataset docvqa --offsets 0,4,8,12,16`<br>`python experiments/revision_table3.py --provider gemini --dataset docvqa --offsets 0,4,8 --conditions sep,multi,tiled` |
-| Table II (pixel-space baselines) | `python experiments/week2_comparison_groq.py` |
-| Text route (Sec. IV-C) | `python experiments/text_route_real_validation.py`, then `python experiments/paired_fidelity_analysis.py` |
-| Flip mechanism (25 DocVQA flips) | `python experiments/revision_flip_mechanism.py` |
-| Bootstrap CIs | `python experiments/evidence_strength_report.py` |
+| Table II, text-route fidelity and token ratios (Sec. IV-C), N=6/8 ceiling | Groq `qwen/qwen3.6-27b` (withdrawn by Groq on 2026-10-16) |
+| Table IV and Fig. 3 (batching) | Groq `qwen/qwen3.8-27b` |
+| All Gemini results | `gemini-2.5-flash` |
+| Fidelity judge | Groq `openai/gpt-oss-120b`, `reasoning_effort=low`, prompt in `prompts/judge_prompt.txt` |
 
-Free-tier quotas bound how much can run per day (Gemini: 20 requests per model; Groq: 200,000 tokens). Every call is cached, so an interrupted run resumes without paying twice. Groq retired `qwen/qwen3.6-27b` on 2026-10-16; the scripts default to its successor, `qwen/qwen3.8-27b`.
+Qwen3.6-27B can no longer be called, so the logged results are the record for those rows.
 
-## Fidelity judge
+## Re-running live experiments (API keys needed)
 
-Answers are scored by `openai/gpt-oss-120b` on Groq (`harness/judge.py`), which sees only the question, the ground-truth answers and the candidate answer, never the condition that produced it. A 100-row human audit (`paper/indicon_submission/judge_validation_sample_scored.csv`) agrees on 86 rows (Cohen's kappa 0.63).
+Copy `.env.example` to `.env` and fill in the keys you need. `experiments/README.md` maps
+each script to the paper section it produced. For example, Table IV:
+
+```bash
+python experiments/revision_table3.py --provider groq --dataset docvqa --offsets 0,4,8,12,16
+python experiments/revision_table3.py --provider gemini --dataset docvqa --offsets 0,4,8,12 --conditions sep,multi,tiled
+```
+
+Every call is cached, so an interrupted run resumes without repeating calls. Free-tier
+quotas limit how much runs per day (Gemini: 20 requests per model; Groq: 200,000 tokens per
+rolling 24 hours). Hosted models are withdrawn without much notice: three were withdrawn
+during this study (Groq Llama 4 Scout, an OpenRouter Nemotron model, and Groq Qwen3.6-27B),
+so live re-runs may need a successor model and may not reproduce the logged numbers.
+
+## Data and licensing
+
+DocVQA and ChartQA are streamed from the HuggingFace Hub (`lmms-lab/DocVQA`,
+`lmms-lab/ChartQA`) and are not redistributed here. The logs identify each sample by its
+DocVQA `questionId` or ChartQA index; `python data/download_datasets.py` fetches the samples
+used. Check the dataset cards for their terms before reuse.
+
+Code is released under the MIT License (`LICENSE`).
+
+## Limitations
+
+- Two hosted APIs were measured in depth, plus OpenRouter as a partial check; results are
+  specific to these endpoints and their behavior at the time of measurement.
+- All calls used free tiers; paid-tier accounting may differ.
+- Samples are small. Text-route fidelity: n = 99, 31 and 13 pairs per group (the ChartQA
+  direction is not significant, McNemar p = 0.06). Table IV: 5 windows for Groq/DocVQA,
+  4 for Gemini, 2 for Groq/ChartQA.
+- The judge agrees with the human audit on 86/100 answers (kappa 0.63), less on DocVQA
+  (kappa 0.41) than on ChartQA (0.74), and is slightly lenient.
+- Gemini's dollar saving in Fig. 3 rests on thinking tokens, which vary by call (-17% to
+  -51% across windows); treat it as indicative.
 
 ## Citation
 
@@ -85,10 +146,13 @@ Answers are scored by `openai/gpt-oss-120b` on Groq (`harness/judge.py`), which 
   author    = {Mukil Skanda A},
   title     = {Beyond Pixel Compression: Measuring Cost-Reduction Levers in Black-Box Multimodal {APIs}},
   booktitle = {Proc. 23rd IEEE India Council International Conference (INDICON)},
+  address   = {Chennai, India},
+  month     = dec,
   year      = {2026}
 }
 ```
 
-## License
+## Contact
 
-Code is released under the MIT License (see `LICENSE`). DocVQA and ChartQA are not redistributed here; they are downloaded from their sources under their own terms.
+Mukil Skanda A, Dept. of Computer Science and Engineering, PES University, Bangalore.
+mukil1336@gmail.com

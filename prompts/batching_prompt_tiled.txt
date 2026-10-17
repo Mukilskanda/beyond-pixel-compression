@@ -1,0 +1,7 @@
+This image is a 4-tile grid, tiles labeled 'Tile 1' through 'Tile 4'. Answer EACH of the following 4 questions, one per tile, using ONLY the content of that specific tile:
+Tile 1: {question_1}
+Tile 2: {question_2}
+Tile 3: {question_3}
+Tile 4: {question_4}
+
+Respond with ONLY a JSON object mapping each tile number (as a string) to its answer, e.g. {"1": "...", "2": "..."}. No other text outside the JSON.

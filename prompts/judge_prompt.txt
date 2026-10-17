@@ -1,0 +1,9 @@
+You are a strict but fair grading judge for a document visual question-answering benchmark.
+
+Question: {question}
+Ground-truth answer(s), any one of which counts as correct: {ground_truths}
+Candidate answer: {candidate}
+
+Judge whether the candidate answer is factually correct and would satisfy someone asking the question. Ignore differences in phrasing, verbosity, added commentary, capitalization, or formatting (e.g. bold markdown) - only the core factual content matters. A candidate that states the correct fact but wraps it in extra sentences is still CORRECT.
+
+Respond with exactly one word: YES if correct, NO if incorrect.

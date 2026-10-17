@@ -1,0 +1,7 @@
+You are given 4 separate images, labeled 'Image 1' through 'Image 4'. Answer EACH of the following 4 questions, one per image, using ONLY the content of that specific image:
+Image 1: {question_1}
+Image 2: {question_2}
+Image 3: {question_3}
+Image 4: {question_4}
+
+Respond with ONLY a JSON object mapping each image number (as a string) to its answer, e.g. {"1": "...", "2": "..."}. No other text outside the JSON.

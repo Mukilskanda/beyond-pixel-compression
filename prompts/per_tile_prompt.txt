@@ -1,0 +1,1 @@
+This image is a {N}-tile grid, tiles labeled 'Tile 1' through 'Tile {N}'. Referring ONLY to Tile {k}, answer this question about that specific sub-image: {question}

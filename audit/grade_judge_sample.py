@@ -1,8 +1,17 @@
+"""Interactive grader used to build the human audit (paper Sec. VI-A).
+
+Input:  audit/judge_validation_sample.csv (100 judged responses, seed 42)
+Output: audit/judge_validation_sample_scored.csv, where human_correct_1_or_0 = 1
+        means the human agreed with the judge's verdict. Resumable.
+Agreement and Cohen's kappa are computed by audit/compute_agreement.py.
+
+Usage (from the repository root): python audit/grade_judge_sample.py
+"""
 import csv
 import sys
 
-INPUT = "judge_validation_sample.csv"
-OUTPUT = "judge_validation_sample_scored.csv"
+INPUT = "audit/judge_validation_sample.csv"
+OUTPUT = "audit/judge_validation_sample_scored.csv"
 
 with open(INPUT, encoding="utf-8") as f:
     rows = list(csv.DictReader(f))
