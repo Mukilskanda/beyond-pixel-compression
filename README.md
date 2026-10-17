@@ -4,7 +4,7 @@ Code, call logs and paper source for the IEEE INDICON 2026 paper (provisionally 
 
 **Question.** Visual-token-reduction methods (pruning, merging, optical compression) report savings in FLOPs and latency inside the model. Does reducing an image on the client lower the input tokens that a *hosted* API reports for billing?
 
-**Method.** Every number comes from the provider's own usage field (`usage.prompt_tokens` on Groq, `usage_metadata.prompt_token_count` on Gemini), logged per call. All calls used free-tier access, so "cost" means reported tokens; dollar figures apply published paid-tier rates to those counts.
+**Method.** Every number comes from the provider's own usage field (`usage.prompt_tokens` on Groq, `usage_metadata.prompt_token_count` on Gemini), logged per call. Billed output is `completion_tokens` on Groq and answer plus thinking tokens (`thoughts_token_count`) on Gemini; `experiments/revision_gemini_thinking.py` and `experiments/revision_textroute_total.py` recompute the thinking-inclusive figures from the cache. All calls used free-tier access, so "cost" means reported tokens; dollar figures apply published paid-tier rates to those counts.
 
 ## Findings
 
@@ -12,7 +12,7 @@ Code, call logs and paper source for the IEEE INDICON 2026 paper (provisionally 
 |---|---|---|
 | Downscale, JPEG, crop, low-detail flag | No change in reported image tokens on Gemini 2.5 Flash or Groq Qwen | Sec. IV-A, Table II |
 | Gemini `media_resolution=LOW` | 258 → 74 tokens for the same image (3.5×) | Sec. IV-B |
-| OCR text instead of the image | 11.24× fewer input tokens on Groq/DocVQA, but 30 of 143 correct answers flipped to wrong (2 the other way) | Sec. IV-C, Table III |
+| OCR text instead of the image | 11.24× fewer input tokens on Groq/DocVQA (2.72× counting output tokens; no total-token saving on Gemini), but 30 of 143 correct answers flipped to wrong (2 the other way) | Sec. IV-C, Table III |
 | 4 questions in one tiled call (N=4) | 3.24× fewer input tokens on Groq with unchanged accuracy; 1.43× on Gemini with lower observed accuracy (9/16 vs. 15/16), against directly measured separate calls | Sec. IV-D, Table IV |
 | Caching (saliency similarity; provider prefix cache) | Unsafe or unreachable | Sec. IV-E |
 
