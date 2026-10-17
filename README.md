@@ -69,7 +69,7 @@ not needed for the offline reproduction.
 ./run_all.sh test       # unit tests
 ```
 
-`make tables` and so on work as well. `analysis/reproduce_all.py` checks 124 values
+`make tables` and so on work as well. `analysis/reproduce_all.py` checks 126 values
 (Tables II to IV and VI, Figs. 2 to 4, the token ratios and their bootstrap confidence
 intervals, the McNemar and Fisher p-values, and the audit kappas) and reports MATCH or
 MISMATCH for each. The paper rounds halves up.

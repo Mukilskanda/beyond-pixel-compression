@@ -114,7 +114,7 @@ def fig_falsification():
     ax.set_yscale("log")
     ax.set_xlabel("Image side length (px), square image")
     ax.set_ylabel("Image tokens")
-    ax.set_ylim(150, 40000)
+    ax.set_ylim(150, 100000)
     ax.legend(loc="upper left", frameon=False)
     ax.grid(True, which="major", alpha=0.25)
     fig.tight_layout()

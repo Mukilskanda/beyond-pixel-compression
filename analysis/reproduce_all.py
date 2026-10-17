@@ -406,6 +406,21 @@ def misc() -> None:
     top = [int(r["width_px"]) * int(r["height_px"]) / 1e6 for r in rows if lvl(int(r["billed_input_tokens"])) == 1830]
     check("Fig. 2 top-level area range (MP)", f"{min(top):.2f}-{max(top):.1f}", "0.13-8.1")
 
+    # Sec. IV-A: Qwen3.8-27B bills the same three levels (its single-image calls in Table IV).
+    q38 = set()
+    for line in JSONL.read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        if r.get("provider") == "groq" and r.get("condition") == "sep":
+            q38 |= {lvl(t) for t in r["per_call_input"]}
+    check("Qwen3.8 single-image calls bill the same levels", sorted(q38), [790, 1300, 1830])
+    s4 = [
+        r
+        for r in map(json.loads, JSONL.read_text(encoding="utf-8").splitlines())
+        if r.get("provider") == "groq" and r.get("dataset") == "docvqa" and r.get("condition") == "sep"
+    ]
+    tall20 = sum(1 for r in s4 for t in r["per_call_input"] if lvl(t) == 790)
+    check("Table IV Groq/DocVQA: tall pages among the 20", tall20, 4)
+
     section("Table VI: natural images, Gemini and OpenRouter")
     imgs = {"49153": (282, 3368, 3357), "24580": (265, 3351, 909), "57349": (267, 3353, 3291)}
     for img, (gem, or12, or30) in imgs.items():
