@@ -368,6 +368,20 @@ def misc() -> None:
     ).fetchone()
     check("Groq composite-call range N=8", f"{r[0]}-{r[1]}", "1850-1867")
 
+    # Gemini image tokens per resolution setting, from cached usage_metadata (single-image calls).
+    img = defaultdict(set)
+    for s_json, r in sqlite3.connect(CACHE).execute(
+        "SELECT settings_json, response_json FROM cache WHERE model='gemini-2.5-flash'"
+    ):
+        mode = json.loads(s_json).get("media_resolution", "default")
+        um = (json.loads(r).get("raw") or {}).get("usage_metadata") or {}
+        for d in um.get("prompt_tokens_details") or []:
+            if "IMAGE" in str(d.get("modality")):
+                img[mode].add(d.get("token_count"))
+    check("Gemini image tokens, default resolution (Sec. IV-B)", sorted(img["default"]), [258])
+    check("Gemini image tokens, low resolution (Sec. IV-B)", sorted(img["MEDIA_RESOLUTION_LOW"]), [66])
+    check("Gemini resolution-mode reduction", rhu(258 / 66, 1), 3.9)
+
     section("Table VI: natural images, Gemini and OpenRouter")
     imgs = {"49153": (282, 3368, 3357), "24580": (265, 3351, 909), "57349": (267, 3353, 3291)}
     for img, (gem, or12, or30) in imgs.items():

@@ -19,7 +19,7 @@ against a 100-sample human audit.
 | Finding | Headline numbers | Paper |
 |---|---|---|
 | Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq; Gemini flat at 258 image tokens from 10x10 to 8000x8000 px | IV-A, Table II, Fig. 1 |
-| Gemini's resolution mode is the one single-image setting that helps | 258 to 74 tokens (3.5x) | IV-B |
+| Gemini's resolution mode is the one single-image setting that helps | 258 to 66 image tokens (3.9x) | IV-B |
 | OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way | IV-C, Table III, Fig. 2 |
 | Four questions in one tiled call (N=4) | Groq: 3.24x fewer input tokens, 19/20 correct in both conditions; Gemini: 1.43x, 15/16 vs. 9/16 correct (Fisher p = 0.04) | IV-D, Table IV, Fig. 3 |
 | Caching | Saliency-similarity cache correct on under 15% of hits; provider prefix caching unreachable | IV-E |
@@ -65,22 +65,22 @@ not needed for the offline reproduction.
 ## Reproduce the paper from the logged data (no API keys)
 
 ```bash
-./run_all.sh tables     # regenerates every reported number and checks it against the paper
+./run_all.sh tables     # regenerates every reported number and checks it against the paper (120 values)
 ./run_all.sh figures    # regenerates paper/figures/*.pdf (byte-identical to the committed files)
 ./run_all.sh audit      # judge vs. human agreement and Cohen's kappa
 ./run_all.sh test       # unit tests
 ./run_all.sh paper      # compiles paper/main.pdf, byte-identical to the committed one (needs pdflatex, bibtex)
 ```
 
-`make tables` and so on work as well. `analysis/reproduce_all.py` checks 117 values
+`make tables` and so on work as well. `analysis/reproduce_all.py` checks 120 values
 (Tables II to IV and VI, Fig. 2 and 3, the token ratios and their bootstrap confidence
 intervals, the McNemar and Fisher p-values, and the audit kappas) and reports MATCH or
 MISMATCH for each. The paper rounds halves up.
 
-Two results are not in the result database and cannot be re-checked by the script: the
-12-call Gemini image-size sweep (Fig. 1) and the default vs. low resolution comparison
-(Sec. IV-B). They were run interactively; their values are recorded in
-`archive/research_notebook.md`.
+One result is not in the result database and cannot be re-checked by the script: the
+12-call Gemini image-size sweep (Fig. 1), which was run interactively; its values are
+recorded in `archive/research_notebook.md`. The Sec. IV-B resolution-mode figures (258 vs.
+66 image tokens) are checked from the cached `usage_metadata` of every Gemini call.
 
 ### How tokens are counted
 

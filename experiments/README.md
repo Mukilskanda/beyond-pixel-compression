@@ -13,7 +13,7 @@ none of these scripts to be re-run.
 |---|---|---|---|
 | IV-A, Table II | `week2_comparison_groq.py` | Groq Qwen3.6-27B | Pixel-space baselines on 3 DocVQA samples |
 | IV-A, Table VI (Gemini column) | `week2_comparison.py` | Gemini 2.5 Flash | Same samples on Gemini |
-| IV-A, Fig. 1; IV-B | none (ad hoc calls) | Gemini 2.5 Flash | The 12-call image-size sweep and the default vs. low resolution comparison were run interactively and not written to the result database; values and method are recorded in `archive/research_notebook.md` (Secs. 3.5, 7). Low-resolution image cost (66 image tokens per image) is visible in every cached low-resolution call. `packing_validation.py` is the related check of the local cost model |
+| IV-A, Fig. 1; IV-B | none (ad hoc calls) | Gemini 2.5 Flash | The 12-call image-size sweep was run interactively and not written to the result database; values and method are recorded in `archive/research_notebook.md` (Secs. 3.5, 7). The resolution-mode figures (258 default vs. 66 low-resolution image tokens) are in the cached `usage_metadata` of every Gemini call and checked by `analysis/reproduce_all.py`. `packing_validation.py` is the related check of the local cost model |
 | IV-C, token ratios | `text_route_real_validation.py`, `chartqa_text_route_validation.py` | Qwen3.6-27B, Gemini | Image route vs. OCR text route |
 | IV-C, Table III, Fig. 2 | `judge_rescore.py`, `chartqa_judge_rescore.py`, `paired_fidelity_analysis.py` | judge: `openai/gpt-oss-120b` | Judge verdicts are cached; re-running makes no new calls |
 | IV-C, bootstrap CIs | `evidence_strength_report.py` (uses `fit_text_route_advisor.py`) | none (offline) | Source of the 11.24x / 1.96x confidence intervals |
