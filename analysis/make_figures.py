@@ -30,7 +30,8 @@ plt.rcParams.update(
     }
 )
 W = 3.5
-OUT = Path("paper/figures")
+OUT = Path("figures")
+OUT.mkdir(exist_ok=True)
 JSONL = Path("results/revision_table3.jsonl")
 
 # Published rates, USD per 1M tokens (input, output), accessed 2026-10-16.
@@ -55,7 +56,7 @@ def fig_falsification():
     documented = 258 * tiles
     fig, ax = plt.subplots(figsize=(W, 1.95))
     ax.plot(side, documented, "--", color="#b91c1c", lw=1.6, label="Documented tiling rule")
-    # Square sizes logged in paper/draft.md Sec. 7/7.1 (10, 32, 100, 1000 blank+noise, 8000).
+    # Square sizes recorded in results/gemini_size_sweep.md (10, 32, 100, 1000 blank+noise, 8000).
     pts = np.array([10, 32, 100, 1000, 8000], dtype=float)
     ax.plot(pts, np.full_like(pts, 258.0), "o-", color="#047857", lw=1.8, ms=4, label="Measured usage field")
     ax.set_xscale("log")

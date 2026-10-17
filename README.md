@@ -3,8 +3,8 @@
 [![tests](https://github.com/Mukilskanda/beyond-pixel-compression/actions/workflows/tests.yml/badge.svg)](https://github.com/Mukilskanda/beyond-pixel-compression/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Code, call logs and paper source for the IEEE INDICON 2026 paper (Paper ID 4684).
-Paper: [`paper/main.pdf`](paper/main.pdf). The version described in the paper is tag
+Code and call logs for the IEEE INDICON 2026 paper (Paper ID 4684). The version described
+in the paper is tag
 [`v1.0-indicon2026`](https://github.com/Mukilskanda/beyond-pixel-compression/tree/v1.0-indicon2026).
 
 Visual-token-reduction methods report savings in FLOPs and latency inside the model. This
@@ -30,21 +30,18 @@ three images with a 3.7x spread (Table VI).
 ## Repository layout
 
 ```
-paper/        LaTeX source (main.tex, refs.bib), figures/, compiled main.pdf
 analysis/     offline scripts that regenerate every reported number and figure
 audit/        100-sample human audit of the judge (seed 42) and the agreement script
 prompts/      exact judge, batching and per-tile prompt templates
 results/      results.sqlite (one row per API call), cache.sqlite (raw responses,
               judge verdicts, Gemini usage_metadata), revision_table3.jsonl (Table IV),
-              docvqa_forward_flips.md (the 25 DocVQA flips)
+              docvqa_forward_flips.md (the 25 DocVQA flips), gemini_size_sweep.md (Fig. 1)
 experiments/  live experiment scripts, mapped to paper sections in experiments/README.md
 src/          pipeline code: harness (providers, cache, judge, metrics, logger),
               router, textpath (OCR), pixelpath (tiling, region selection), profiler,
               baselines, data (dataset loaders)
 data/         dataset download script and notes (datasets are not redistributed)
 tests/        unit tests (pytest)
-archive/      submitted version of the paper, research notebook, browser extension
-              prototype; not needed to reproduce the paper
 ```
 
 ## Setup
@@ -66,10 +63,9 @@ not needed for the offline reproduction.
 
 ```bash
 ./run_all.sh tables     # regenerates every reported number and checks it against the paper (120 values)
-./run_all.sh figures    # regenerates paper/figures/*.pdf (byte-identical to the committed files)
+./run_all.sh figures    # regenerates the paper's figures into figures/
 ./run_all.sh audit      # judge vs. human agreement and Cohen's kappa
 ./run_all.sh test       # unit tests
-./run_all.sh paper      # compiles paper/main.pdf, byte-identical to the committed one (needs pdflatex, bibtex)
 ```
 
 `make tables` and so on work as well. `analysis/reproduce_all.py` checks 120 values
@@ -79,7 +75,7 @@ MISMATCH for each. The paper rounds halves up.
 
 One result is not in the result database and cannot be re-checked by the script: the
 12-call Gemini image-size sweep (Fig. 1), which was run interactively; its values are
-recorded in `archive/research_notebook.md`. The Sec. IV-B resolution-mode figures (258 vs.
+recorded in `results/gemini_size_sweep.md`. The Sec. IV-B resolution-mode figures (258 vs.
 66 image tokens) are checked from the cached `usage_metadata` of every Gemini call.
 
 ### How tokens are counted

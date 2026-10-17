@@ -1,5 +1,5 @@
 """Regenerate every number reported in the paper from the logged data and
-compare it with the value printed in paper/main.tex. No API calls.
+compare it with the value printed in the paper. No API calls.
 
 Inputs:  results/results.sqlite      one row per API call (tokens, response)
          results/cache.sqlite        cached raw responses, incl. judge verdicts

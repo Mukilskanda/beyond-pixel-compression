@@ -45,3 +45,8 @@ archive/submitted_version/pgp-8.png
 build/
 dist/
 .venv/
+
+# Not published: paper source/PDF and private working files (kept locally)
+paper/
+archive/
+figures/
