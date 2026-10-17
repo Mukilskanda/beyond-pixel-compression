@@ -23,6 +23,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from harness.metrics import _strip_think_block
 
@@ -137,7 +138,7 @@ def main() -> None:
     # Cohen's kappa for human audit. CSV stores human agreement with the
     # judge (1/0); reconstruct the judge verdict from the cache, then human
     # label = judge verdict if agree else its negation.
-    path = Path("paper/indicon_submission/judge_validation_sample_scored.csv")
+    path = Path("audit/judge_validation_sample_scored.csv")
     with open(path, encoding="utf-8") as f:
         audit = list(csv.DictReader(f))
     conn = sqlite3.connect("results/results.sqlite")
@@ -174,7 +175,7 @@ if __name__ == "__main__":
     main()
 
 
-def export_flips(path: str = "paper/indicon_revision/docvqa_forward_flips.md") -> None:
+def export_flips(path: str = "results/docvqa_forward_flips.md") -> None:
     """Write every DocVQA forward flip (image correct, text wrong) for manual review."""
     judge = load_judge_cache()
     best = best_rows()

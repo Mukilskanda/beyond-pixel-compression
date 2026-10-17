@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from baselines.baselines import GEMINI_LOW_DETAIL_SETTINGS
 from data.docvqa_loader import load_docvqa

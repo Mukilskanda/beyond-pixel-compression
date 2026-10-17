@@ -23,11 +23,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from textpath.compress import compress_markdown
 from textpath.ocr import image_to_markdown
 
-FLIPS = Path("paper/indicon_revision/docvqa_forward_flips.md")
+FLIPS = Path("results/docvqa_forward_flips.md")
 
 
 def norm(s: str) -> str:

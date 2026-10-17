@@ -32,18 +32,9 @@ nul
 *.synctex.gz
 *.blg
 
-# Local paper backups and superseded drafts (not part of the submission)
+# Local working copies and private files (not part of the release)
+paper/indicon_revision/
 paper/indicon_submission_ORIGINAL_backup_*/
-paper/indicon_revision/main_rewrite_v1.tex
-paper/indicon_revision/refs_rewrite_v1.bib
-paper/indicon_revision/main_before_pass2.tex
+paper/*.zip
+paper/response_to_reviewers.md
 reversal_check.txt
-
-# Reviewer correspondence (confidential CMT content; keep local)
-paper/indicon_revision/response_to_reviewers.md
-
-# Local build outputs and leftovers
-paper/indicon_submission/pgp-8.png
-paper/indicon_revision/indicon_4684_latex_source.zip
-paper/indicon_revision/figures/fig_summary.pdf
-paper/indicon_revision/make_figures.py
