@@ -32,6 +32,7 @@ Usage:
     python experiments/pdf_batched_text_route_check.py --n 4
     python experiments/pdf_batched_text_route_check.py --n 4 --dataset chartqa
 """
+
 from __future__ import annotations
 
 import argparse
@@ -90,7 +91,7 @@ def build_batched_text_prompt(pages: list[str], questions: list[str]) -> str:
     return (
         f"{instruction}\n\n{numbered_pages}\n\nQuestions:\n{numbered_questions}\n\n"
         f"Respond with ONLY a JSON object mapping each page number (as a string) "
-        f"to its answer, e.g. {{\"1\": \"...\", \"2\": \"...\"}}. No other text "
+        f'to its answer, e.g. {{"1": "...", "2": "..."}}. No other text '
         f"outside the JSON."
     )
 

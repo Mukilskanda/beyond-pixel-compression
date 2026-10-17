@@ -12,6 +12,7 @@ this specific run — see harness/providers.py:AnthropicProvider):
 
     python experiments/cache_validation.py --model claude-opus-5 --n 5
 """
+
 from __future__ import annotations
 
 import argparse
@@ -29,11 +30,13 @@ from harness.providers import AnthropicProvider
 def run_cache_validation(model: str, n: int, dataset: str = "docvqa", cache_path: str = "results/cache.sqlite") -> None:
     if dataset == "docvqa":
         from data.docvqa_loader import load_docvqa
+
         print(f"Loading {n} real DocVQA samples (no registration needed, streamed via HF Hub)...")
         samples = load_docvqa(limit=n)
         get_qa = lambda s: (s.image_path, s.question)
     else:
         from data.synthetic import generate_dataset
+
         print(f"Generating {n} synthetic samples for cache validation (--dataset synthetic)...")
         samples = generate_dataset(output_dir="data/scratch/cache_validation", per_category=max(1, n // 5))[:n]
         get_qa = lambda s: (s.image_path, s.question)
@@ -68,8 +71,10 @@ def run_cache_validation(model: str, n: int, dataset: str = "docvqa", cache_path
     if avg2 < avg1 * 0.1:
         print("PASS: cache is dedupering correctly (pass 2 near-instant). Safe to proceed to a real measurement run.")
     else:
-        print("WARNING: pass 2 wasn't meaningfully faster than pass 1 — cache may not be hitting. "
-              "Do NOT approve further spend until this is investigated (check harness/cache.py key construction).")
+        print(
+            "WARNING: pass 2 wasn't meaningfully faster than pass 1 — cache may not be hitting. "
+            "Do NOT approve further spend until this is investigated (check harness/cache.py key construction)."
+        )
 
     cache.close()
 
@@ -77,7 +82,12 @@ def run_cache_validation(model: str, n: int, dataset: str = "docvqa", cache_path
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default="claude-opus-5")
-    parser.add_argument("--n", type=int, default=5, help="number of samples (small on purpose — this is a smoke test, not a real experiment)")
+    parser.add_argument(
+        "--n",
+        type=int,
+        default=5,
+        help="number of samples (small on purpose — this is a smoke test, not a real experiment)",
+    )
     parser.add_argument("--dataset", choices=["docvqa", "synthetic"], default="docvqa")
     args = parser.parse_args()
     run_cache_validation(model=args.model, n=args.n, dataset=args.dataset)

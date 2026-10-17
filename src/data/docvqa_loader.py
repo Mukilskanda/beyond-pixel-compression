@@ -7,6 +7,7 @@ Note: image field is a decoded PIL.Image, not a file path — samples are
 materialized to disk under `data/docvqa_cache/` on first load so the rest of
 the pipeline (which expects file paths) can use them unchanged.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -62,7 +63,9 @@ def load_docvqa(
 # Kept for anyone who already has the official release extracted locally, or
 # wants the exact original file layout for reproducibility citations. Not
 # needed for normal use — load_docvqa() above is the recommended path.
-def load_docvqa_official(root: str | Path = "data/docvqa", split: str = "val_v1.0", limit: int | None = None) -> list[DocVQASample]:
+def load_docvqa_official(
+    root: str | Path = "data/docvqa", split: str = "val_v1.0", limit: int | None = None
+) -> list[DocVQASample]:
     import json
 
     root = Path(root)

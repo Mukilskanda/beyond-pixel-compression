@@ -14,6 +14,7 @@ Two independent, composable reductions:
      watermarks are common on multi-page scans and contribute nothing new
      per repetition).
 """
+
 from __future__ import annotations
 
 

@@ -16,6 +16,7 @@ gemini_2_5_flash_image_cost() below for the Gemini-specific replacement,
 which should NOT be assumed to generalize to any other provider — see its
 own docstring for the mechanism investigation and why.
 """
+
 from __future__ import annotations
 
 # Gemini 2.5 Flash's real image token cost, empirically confirmed flat.
@@ -80,7 +81,7 @@ def tile_cost(width: int, height: int, tile_size: int = 512, base_tokens: int = 
     tiling scheme (e.g. Anthropic bills roughly (w*h)/750 tokens for images —
     verify against real usage.input_tokens before trusting this).
     """
-    tiles_x = -(-width // tile_size)   # ceil div
+    tiles_x = -(-width // tile_size)  # ceil div
     tiles_y = -(-height // tile_size)
     return tiles_x * tiles_y * base_tokens
 
@@ -90,9 +91,8 @@ def merge_savings(region_a, region_b, tile_size: int = 512, base_tokens: int = 8
     vs. two separate crops. Region merging is only worth it when the merged
     bounding box doesn't cross enough extra tile boundaries to offset the win.
     """
-    separate = (
-        tile_cost(region_a.w, region_a.h, tile_size, base_tokens)
-        + tile_cost(region_b.w, region_b.h, tile_size, base_tokens)
+    separate = tile_cost(region_a.w, region_a.h, tile_size, base_tokens) + tile_cost(
+        region_b.w, region_b.h, tile_size, base_tokens
     )
     merged_w = max(region_a.x + region_a.w, region_b.x + region_b.w) - min(region_a.x, region_b.x)
     merged_h = max(region_a.y + region_a.h, region_b.y + region_b.h) - min(region_a.y, region_b.y)

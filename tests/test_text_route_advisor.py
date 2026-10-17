@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from experiments.fit_text_route_advisor import FEATURE_NAMES, _features_vector, fit_and_evaluate
 from profiler.features import ProfileFeatures

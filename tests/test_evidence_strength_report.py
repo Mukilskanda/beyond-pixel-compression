@@ -34,23 +34,15 @@ def mixed_provider_db(tmp_path, monkeypatch):
     the bug, and asserting the provider-aware version doesn't."""
     db_path = tmp_path / "results.sqlite"
     conn = sqlite3.connect(str(db_path))
-    conn.execute(
-        "CREATE TABLE runs (dataset TEXT, method TEXT, model TEXT, input_tokens INTEGER, truncated INTEGER)"
-    )
+    conn.execute("CREATE TABLE runs (dataset TEXT, method TEXT, model TEXT, input_tokens INTEGER, truncated INTEGER)")
     # Groq: expensive flat image cost, mixed into the same 'docvqa' dataset tag.
     for tok in (1800, 1810, 1820, 1790):
-        conn.execute(
-            "INSERT INTO runs VALUES ('docvqa', 'unreduced', 'qwen/qwen3.6-27b', ?, 0)", (tok,)
-        )
+        conn.execute("INSERT INTO runs VALUES ('docvqa', 'unreduced', 'qwen/qwen3.6-27b', ?, 0)", (tok,))
     # Gemini: cheap flat image cost, same dataset tag, different model.
     for tok in (270, 265, 280):
-        conn.execute(
-            "INSERT INTO runs VALUES ('docvqa', 'unreduced', 'gemini-2.5-flash', ?, 0)", (tok,)
-        )
+        conn.execute("INSERT INTO runs VALUES ('docvqa', 'unreduced', 'gemini-2.5-flash', ?, 0)", (tok,))
     # A real Gemini batched trial — tiny token count, as batching produces.
-    conn.execute(
-        "INSERT INTO runs VALUES ('docvqa_batched_tiled_gemini', 'batched_n4', 'gemini-2.5-flash', 217, 0)"
-    )
+    conn.execute("INSERT INTO runs VALUES ('docvqa_batched_tiled_gemini', 'batched_n4', 'gemini-2.5-flash', 217, 0)")
     conn.commit()
     conn.close()
 

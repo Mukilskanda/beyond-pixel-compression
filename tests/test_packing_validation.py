@@ -4,6 +4,7 @@ cost-model discussion don't require spending API calls again to re-verify
 what was already found. This does NOT call any real API — it locks in the
 captured numbers and the headline finding they support.
 """
+
 import json
 import sys
 from pathlib import Path

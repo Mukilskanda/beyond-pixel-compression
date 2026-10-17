@@ -12,6 +12,7 @@ Also computes Cohen's kappa for the 100-row human audit.
 
 Usage: python experiments/revision_recount.py
 """
+
 from __future__ import annotations
 
 import csv
@@ -27,7 +28,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from harness.metrics import _strip_think_block
 
-Q_RE = re.compile(r"Question: (.*?)\nGround-truth answer\(s\), any one of which counts as correct: (.*?)\nCandidate answer: (.*)\n\nJudge whether", re.S)
+Q_RE = re.compile(
+    r"Question: (.*?)\nGround-truth answer\(s\), any one of which counts as correct: (.*?)\nCandidate answer: (.*)\n\nJudge whether",
+    re.S,
+)
 
 
 def load_judge_cache() -> dict[tuple[str, str], tuple[bool | None, str]]:
@@ -112,22 +116,29 @@ def main() -> None:
             g["both_wrong"] += 1
 
     tot = defaultdict(int)
-    print(f"\n{'group':<34}{'n':>4}{'fwd':>5}{'rev':>5}{'both+':>6}{'both-':>6}{'img acc':>9}{'txt acc':>9}{'unk':>5}  fwd Wilson95")
+    print(
+        f"\n{'group':<34}{'n':>4}{'fwd':>5}{'rev':>5}{'both+':>6}{'both-':>6}{'img acc':>9}{'txt acc':>9}{'unk':>5}  fwd Wilson95"
+    )
     for (ds, model), g in sorted(groups.items()):
         lo, hi = wilson(g["forward"], g["n"])
-        print(f"{ds + '/' + model:<34}{g['n']:>4}{g['forward']:>5}{g['reverse']:>5}{g['both_ok']:>6}{g['both_wrong']:>6}"
-              f"{100 * g['img_ok'] / g['n']:>8.1f}%{100 * g['txt_ok'] / g['n']:>8.1f}%{unknown[(ds, model)]:>5}  [{100 * lo:.1f}, {100 * hi:.1f}]")
+        print(
+            f"{ds + '/' + model:<34}{g['n']:>4}{g['forward']:>5}{g['reverse']:>5}{g['both_ok']:>6}{g['both_wrong']:>6}"
+            f"{100 * g['img_ok'] / g['n']:>8.1f}%{100 * g['txt_ok'] / g['n']:>8.1f}%{unknown[(ds, model)]:>5}  [{100 * lo:.1f}, {100 * hi:.1f}]"
+        )
         for k, v in g.items():
             tot[k] += v
-    print(f"{'TOTAL':<34}{tot['n']:>4}{tot['forward']:>5}{tot['reverse']:>5}{tot['both_ok']:>6}{tot['both_wrong']:>6}"
-          f"  unknown pairs={sum(unknown.values())}")
+    print(
+        f"{'TOTAL':<34}{tot['n']:>4}{tot['forward']:>5}{tot['reverse']:>5}{tot['both_ok']:>6}{tot['both_wrong']:>6}"
+        f"  unknown pairs={sum(unknown.values())}"
+    )
 
     # Token-reduction pairs (text route ratio): count per provider/dataset
     conn = sqlite3.connect("results/results.sqlite")
     by = defaultdict(dict)
     for ds, ip, m, mo, t in conn.execute(
         "SELECT dataset, image_path, method, model, input_tokens FROM runs "
-        "WHERE method IN ('unreduced','text_compressed') AND truncated = 0"):
+        "WHERE method IN ('unreduced','text_compressed') AND truncated = 0"
+    ):
         by[(ds, ip, mo)][m] = t
     cnt = defaultdict(int)
     for (ds, ip, mo), mm in by.items():
@@ -164,11 +175,28 @@ def main() -> None:
     pe = pj * ph + (1 - pj) * (1 - ph)
     kappa = (po - pe) / (1 - pe)
     print(f"\nHuman audit: rows={len(audit)} matched={n} unmatched={unmatched}")
-    print(f"  agreement={100 * po:.1f}%  judge YES rate={100 * pj:.1f}%  human YES rate={100 * ph:.1f}%  kappa={kappa:.3f}")
-    tp = sum(1 for x, y in zip(jv, hv) if x and y); fp = sum(1 for x, y in zip(jv, hv) if x and not y)
-    fn = sum(1 for x, y in zip(jv, hv) if not x and y); tn = sum(1 for x, y in zip(jv, hv) if not x and not y)
+    print(
+        f"  agreement={100 * po:.1f}%  judge YES rate={100 * pj:.1f}%  human YES rate={100 * ph:.1f}%  kappa={kappa:.3f}"
+    )
+    tp = sum(1 for x, y in zip(jv, hv) if x and y)
+    fp = sum(1 for x, y in zip(jv, hv) if x and not y)
+    fn = sum(1 for x, y in zip(jv, hv) if not x and y)
+    tn = sum(1 for x, y in zip(jv, hv) if not x and not y)
     print(f"  confusion (judge,human): YY={tp} YN={fp} NY={fn} NN={tn}")
-    print("  audit composition:", dict(sorted(defaultdict(int, {k: sum(1 for a in audit if (a['dataset'], a['method']) == k) for k in {(a['dataset'], a['method']) for a in audit}}).items())))
+    print(
+        "  audit composition:",
+        dict(
+            sorted(
+                defaultdict(
+                    int,
+                    {
+                        k: sum(1 for a in audit if (a["dataset"], a["method"]) == k)
+                        for k in {(a["dataset"], a["method"]) for a in audit}
+                    },
+                ).items()
+            )
+        ),
+    )
 
 
 if __name__ == "__main__":
@@ -195,7 +223,9 @@ def export_flips(path: str = "results/docvqa_forward_flips.md") -> None:
         if t is None or t[0] is not False:
             continue
         k += 1
-        out.append(f"## {k}. {model} | {ip}\n- Q: {q}\n- GT: {gts}\n- Image route: {cand[:400]}\n- Text route ({tm}): {t[3][:400]}\n- Failure mode (fill in: LAYOUT / EXTRACTION): \n")
+        out.append(
+            f"## {k}. {model} | {ip}\n- Q: {q}\n- GT: {gts}\n- Image route: {cand[:400]}\n- Text route ({tm}): {t[3][:400]}\n- Failure mode (fill in: LAYOUT / EXTRACTION): \n"
+        )
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text("\n".join(out), encoding="utf-8")
     print(f"wrote {k} flips to {path}")

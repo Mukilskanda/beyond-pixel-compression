@@ -13,7 +13,9 @@ class StubJudgeProvider:
 
     def call_text_only(self, text, prompt, **settings):
         self.last_prompt = prompt
-        return CallResult(text=self.verdict_text, input_tokens=10, output_tokens=1, latency_s=0.001, model="stub-judge", raw={})
+        return CallResult(
+            text=self.verdict_text, input_tokens=10, output_tokens=1, latency_s=0.001, model="stub-judge", raw={}
+        )
 
 
 def test_judge_correctness_parses_yes():

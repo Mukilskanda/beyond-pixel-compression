@@ -30,6 +30,7 @@ completes that argument with evidence, not just citation).
 
 Usage: python experiments/image_caching_viability_check.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -52,13 +53,17 @@ def check_groq_vision_caching_overlap() -> None:
 
     provider = GroqProvider(model="openai/gpt-oss-120b")
     try:
-        provider.call("data/docvqa_cache/49153.png", "Describe this in one sentence.", max_tokens=50, reasoning_effort="low")
+        provider.call(
+            "data/docvqa_cache/49153.png", "Describe this in one sentence.", max_tokens=50, reasoning_effort="low"
+        )
         print("RESULT: openai/gpt-oss-120b accepted image content - caching IS testable on Groq.")
     except Exception as exc:
         print(f"RESULT: openai/gpt-oss-120b rejected image content - {exc}")
         print("Groq's only documented cache-supported models are text-only (GPT-OSS family).")
         print("qwen/qwen3.6-27b (this project's vision-capable Groq model) has no documented caching support.")
-        print("VERDICT: no valid (vision-capable, cache-supported) model combination exists on Groq with currently available models.")
+        print(
+            "VERDICT: no valid (vision-capable, cache-supported) model combination exists on Groq with currently available models."
+        )
 
 
 def check_gemini_threshold_reachability() -> None:
@@ -66,8 +71,12 @@ def check_gemini_threshold_reachability() -> None:
     print(f"Documented implicit-caching minimum: {GEMINI_IMPLICIT_CACHE_MIN_TOKENS} tokens (gemini-2.5-flash)")
     for label, tokens in MEASURED_GEMINI_IMAGE_TOKENS.items():
         ratio = tokens / GEMINI_IMPLICIT_CACHE_MIN_TOKENS
-        print(f"  {label}: {tokens} tokens measured ({ratio * 100:.1f}% of threshold) - {'REACHES' if tokens >= GEMINI_IMPLICIT_CACHE_MIN_TOKENS else 'below threshold'}")
-    print("VERDICT: every real image-call size this project has ever measured on Gemini is far below the caching threshold.")
+        print(
+            f"  {label}: {tokens} tokens measured ({ratio * 100:.1f}% of threshold) - {'REACHES' if tokens >= GEMINI_IMPLICIT_CACHE_MIN_TOKENS else 'below threshold'}"
+        )
+    print(
+        "VERDICT: every real image-call size this project has ever measured on Gemini is far below the caching threshold."
+    )
 
 
 if __name__ == "__main__":

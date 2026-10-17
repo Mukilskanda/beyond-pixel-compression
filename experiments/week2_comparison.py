@@ -18,6 +18,7 @@ Conditions compared (kept to 3 to fit quota — not the full 6-baseline sweep):
 Stops cleanly on a 429 rather than crashing uninformatively, and logs
 exactly how many real calls succeeded before stopping.
 """
+
 from __future__ import annotations
 
 import sys
@@ -71,7 +72,9 @@ def run() -> dict:
             tmp_path = Path("data/scratch") / f"downscale_{sample.image_path.name}"
             tmp_path.write_bytes(image_bytes)
             result = provider.call(str(tmp_path), sample.question)
-            db.log("docvqa_week2", str(sample.image_path), "uniform_downscale_50", result, sample.answers, sample.question)
+            db.log(
+                "docvqa_week2", str(sample.image_path), "uniform_downscale_50", result, sample.answers, sample.question
+            )
             call_count += 1
             print(f"  [downscale] {sample.image_path.name}: input_tokens={result.input_tokens}")
             time.sleep(4)
@@ -98,11 +101,22 @@ def run() -> dict:
                 # route TEXT anyway (see router/rules.py's documented known
                 # gap), so this is expected to never trigger in practice;
                 # skip cleanly rather than crash if it ever does.
-                print(f"  [pipeline] {sample.image_path.name}: TEXT route (no image) — GeminiProvider has no text-only path, skipping")
+                print(
+                    f"  [pipeline] {sample.image_path.name}: TEXT route (no image) — GeminiProvider has no text-only path, skipping"
+                )
                 continue
-            db.log("docvqa_week2", str(sample.image_path), f"full_pipeline_{payload.route.value}", result, sample.answers, sample.question)
+            db.log(
+                "docvqa_week2",
+                str(sample.image_path),
+                f"full_pipeline_{payload.route.value}",
+                result,
+                sample.answers,
+                sample.question,
+            )
             call_count += 1
-            print(f"  [pipeline/{payload.route.value}] {sample.image_path.name}: input_tokens={result.input_tokens} budget={payload.pixel_budget}")
+            print(
+                f"  [pipeline/{payload.route.value}] {sample.image_path.name}: input_tokens={result.input_tokens} budget={payload.pixel_budget}"
+            )
             time.sleep(4)
         except Exception as e:
             print(f"  STOPPED at pipeline/{sample.image_path.name}: {type(e).__name__}: {str(e)[:150]}")

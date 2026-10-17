@@ -18,6 +18,7 @@ resolutions are comparable and the comparison is cheap (no model inference).
 This reuses saliency_map() as-is - no new visual feature extraction was
 built for this.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -65,15 +66,14 @@ class QuestionSimilarity:
 
     def __init__(self):
         from sklearn.feature_extraction.text import TfidfVectorizer
+
         self._vectorizer = TfidfVectorizer(stop_words="english")
         self._fitted = False
         self._question_to_vec: dict[str, np.ndarray] = {}
 
     def fit(self, questions: list[str]) -> None:
         matrix = self._vectorizer.fit_transform(questions)  # rows already L2-normalized (sklearn default)
-        self._question_to_vec = {
-            q: np.asarray(matrix[i].todense()).flatten() for i, q in enumerate(questions)
-        }
+        self._question_to_vec = {q: np.asarray(matrix[i].todense()).flatten() for i, q in enumerate(questions)}
         self._fitted = True
 
     def vector(self, question: str) -> np.ndarray:
@@ -166,7 +166,9 @@ class QueryAwareCache:
 
     def add(self, image_path: str | Path, question: str, answer: str) -> None:
         sig = _saliency_signature(image_path, self.grid)
-        self.entries.append(QueryCacheEntry(image_path=str(image_path), question=question, answer=answer, image_signature=sig))
+        self.entries.append(
+            QueryCacheEntry(image_path=str(image_path), question=question, answer=answer, image_signature=sig)
+        )
 
     def best_match(self, image_path: str | Path, question: str) -> tuple[QueryCacheEntry | None, float, float]:
         """Returns (best entry by combined score, image_sim, question_sim)
@@ -186,7 +188,9 @@ class QueryAwareCache:
                 best_entry, best_img_sim, best_q_sim = entry, img_sim, q_sim
         return best_entry, best_img_sim, best_q_sim
 
-    def lookup(self, image_path: str | Path, question: str, threshold: float) -> tuple[QueryCacheEntry | None, float, float]:
+    def lookup(
+        self, image_path: str | Path, question: str, threshold: float
+    ) -> tuple[QueryCacheEntry | None, float, float]:
         """Cache HIT only if BOTH image_sim >= threshold AND question_sim >=
         threshold for the best-matching entry (same shared threshold on
         both axes, for direct comparability with §11.2's image-only curve)."""

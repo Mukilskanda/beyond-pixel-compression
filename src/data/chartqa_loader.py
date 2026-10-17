@@ -13,6 +13,7 @@ DocVQA) — normalized to a single-element list here so downstream code
 (harness/judge.py, harness/metrics.py, both of which take
 `ground_truths: list[str]`) doesn't need a ChartQA-specific branch.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

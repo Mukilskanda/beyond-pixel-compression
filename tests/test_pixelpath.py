@@ -42,6 +42,7 @@ def test_saliency_methods_produce_different_signal(sample_image):
     sr = saliency_map(sample_image, method="spectral_residual")
     fg = saliency_map(sample_image, method="fine_grained")
     import numpy as np
+
     correlation = np.corrcoef(sr.flatten(), fg.flatten())[0, 1]
     assert correlation < 0.9  # meaningfully different, not near-identical
 
@@ -107,7 +108,7 @@ def test_dp_select_strictly_beats_greedy_on_stranded_budget_case():
     first, which strands the remaining budget with nothing else fitting.
     DP finds the lower-ratio item that uses the whole budget and scores higher."""
     regions = [
-        Region(x=0, y=0, w=1, h=1, value=6.0, cost=5),    # ratio 1.2 (best) — greedy grabs this first
+        Region(x=0, y=0, w=1, h=1, value=6.0, cost=5),  # ratio 1.2 (best) — greedy grabs this first
         Region(x=1, y=0, w=1, h=1, value=10.0, cost=10),  # ratio 1.0 — uses the full budget alone
     ]
     budget = 10

@@ -20,6 +20,7 @@ DocVQA's `answers: list[str]` shape already expected by
 `harness/judge.py`/`harness/metrics.py` — no dataset-specific branch
 needed).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

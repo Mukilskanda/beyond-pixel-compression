@@ -4,6 +4,7 @@ Uses Tesseract as the baseline engine (simple, no model download). Swap in
 PaddleOCR for better layout/table handling once the pipeline is validated —
 see plan §Stage 3a and §3.5 (saliency/OCR engine ablation).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

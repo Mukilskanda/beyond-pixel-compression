@@ -10,6 +10,7 @@ Do not train this against synthetic fixtures — the whole point is learning
 routing decisions an expert oracle sweep discovered, and synthetic fixtures
 have no real API cost/fidelity signal to distill from.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict
@@ -22,7 +23,13 @@ from router.rules import Route
 class LearnedRouter:
     def __init__(self, model=None):
         self.model = model  # sklearn GradientBoostingClassifier once trained
-        self._feature_order = ["text_density", "whitespace_ratio", "layout_regularity", "color_entropy", "spatial_variance"]
+        self._feature_order = [
+            "text_density",
+            "whitespace_ratio",
+            "layout_regularity",
+            "color_entropy",
+            "spatial_variance",
+        ]
 
     def _to_vector(self, features: ProfileFeatures) -> list[float]:
         d = asdict(features)
@@ -30,7 +37,9 @@ class LearnedRouter:
 
     def predict(self, features: ProfileFeatures, query: str) -> Route:
         if self.model is None:
-            raise RuntimeError("LearnedRouter has no trained model — run train() first, or use router.rules.route() as the v1 baseline")
+            raise RuntimeError(
+                "LearnedRouter has no trained model — run train() first, or use router.rules.route() as the v1 baseline"
+            )
         vector = self._to_vector(features)
         # TODO(week 9): incorporate query-intent features (currently rules.py
         # handles spatial-intent keywords separately; decide whether the
@@ -38,7 +47,9 @@ class LearnedRouter:
         label = self.model.predict([vector])[0]
         return Route(label)
 
-    def train(self, feature_rows: list[ProfileFeatures], labels: list[Route], save_path: str | Path | None = None) -> None:
+    def train(
+        self, feature_rows: list[ProfileFeatures], labels: list[Route], save_path: str | Path | None = None
+    ) -> None:
         from sklearn.ensemble import GradientBoostingClassifier
 
         X = [self._to_vector(f) for f in feature_rows]
@@ -49,8 +60,10 @@ class LearnedRouter:
 
         if save_path is not None:
             import joblib
+
             joblib.dump(self.model, save_path)
 
     def load(self, path: str | Path) -> None:
         import joblib
+
         self.model = joblib.load(path)

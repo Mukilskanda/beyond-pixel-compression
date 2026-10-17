@@ -1,4 +1,5 @@
 """Experiment orchestration: run a (image, prompt) set through a provider, log results to SQLite."""
+
 from __future__ import annotations
 
 import sqlite3
@@ -13,7 +14,7 @@ try:
 except ImportError:  # running as a script from inside harness/
     from cache import ResponseCache
     from metrics import anls, exact_match, is_truncated
-    from providers import AnthropicProvider, OllamaProvider
+    from providers import OllamaProvider
 
 
 class ResultDB:
@@ -52,7 +53,15 @@ class ResultDB:
             self._conn.execute("ALTER TABLE runs ADD COLUMN finish_reason TEXT")
         self._conn.commit()
 
-    def log(self, dataset: str, image_path: str, method: str, result, ground_truths: list[str] | None = None, prompt: str | None = None) -> None:
+    def log(
+        self,
+        dataset: str,
+        image_path: str,
+        method: str,
+        result,
+        ground_truths: list[str] | None = None,
+        prompt: str | None = None,
+    ) -> None:
         finish_reason = getattr(result, "finish_reason", None)
         truncated = is_truncated(finish_reason)
 
@@ -72,9 +81,19 @@ class ResultDB:
             "input_tokens, output_tokens, latency_s, anls_score, exact_match, truncated, finish_reason) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
-                dataset, image_path, method, result.model, prompt, result.text,
-                result.input_tokens, result.output_tokens, result.latency_s,
-                anls_score, em_score, int(truncated), finish_reason,
+                dataset,
+                image_path,
+                method,
+                result.model,
+                prompt,
+                result.text,
+                result.input_tokens,
+                result.output_tokens,
+                result.latency_s,
+                anls_score,
+                em_score,
+                int(truncated),
+                finish_reason,
             ),
         )
         self._conn.commit()
@@ -127,6 +146,8 @@ if __name__ == "__main__":
     # see plan §6 cost controls, and confirm the cache is warm first):
     # real_provider = AnthropicProvider(model="claude-opus-5", cache=cache)
 
-    print("Harness ready. Load DocVQA via data/docvqa_loader.py, then call "
-          "run_baseline_sweep() with baselines.baselines transforms for the "
-          "week-2 checkpoint (see experiments/week2_baselines.yaml).")
+    print(
+        "Harness ready. Load DocVQA via data/docvqa_loader.py, then call "
+        "run_baseline_sweep() with baselines.baselines transforms for the "
+        "week-2 checkpoint (see experiments/week2_baselines.yaml)."
+    )

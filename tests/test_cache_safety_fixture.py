@@ -5,6 +5,7 @@ so the negative finding in paper/draft.md §11 doesn't silently drift or
 require re-running to re-verify. Does NOT call any real API - the analysis
 itself is zero-spend (real DocVQA download + ground-truth answers only).
 """
+
 import json
 from pathlib import Path
 

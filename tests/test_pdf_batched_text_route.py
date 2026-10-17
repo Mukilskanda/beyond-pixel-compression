@@ -5,6 +5,7 @@ and no dependency on the real DocVQA cache, per this project's standing
 practice of proving mechanism logic offline before it ever touches real
 data or spend.
 """
+
 from experiments.pdf_batched_text_route_check import _count_tokens, build_batched_text_prompt
 
 

@@ -10,6 +10,7 @@ rate limit that cut a previous run short.
 
 Usage: python experiments/min_confidence_fidelity.py --n 12
 """
+
 from __future__ import annotations
 
 import argparse
@@ -64,7 +65,9 @@ def run(n: int, max_tokens: int = 1500, sleep_s: float = 3.0, offset: int = 0) -
                 prompt=sample.question,
             )
             rows.append((sample.question_id, method_name, result.input_tokens, result.finish_reason))
-            print(f"  [{sample.question_id}] {method_name}: input_tokens={result.input_tokens} finish_reason={result.finish_reason}")
+            print(
+                f"  [{sample.question_id}] {method_name}: input_tokens={result.input_tokens} finish_reason={result.finish_reason}"
+            )
             time.sleep(sleep_s)  # stay under Groq's 8000 TPM
 
     print(f"\n{'question_id':<14}{'min_conf_0':>14}{f'min_conf_{MIN_CONFIDENCE_FILTERED}':>16}")
@@ -72,7 +75,9 @@ def run(n: int, max_tokens: int = 1500, sleep_s: float = 3.0, offset: int = 0) -
     for qid, method, tokens, _ in rows:
         by_qid.setdefault(qid, {})[method] = tokens
     for qid, methods in by_qid.items():
-        print(f"{qid:<14}{methods.get('min_conf_0', 'n/a'):>14}{methods.get(f'min_conf_{MIN_CONFIDENCE_FILTERED}', 'n/a'):>16}")
+        print(
+            f"{qid:<14}{methods.get('min_conf_0', 'n/a'):>14}{methods.get(f'min_conf_{MIN_CONFIDENCE_FILTERED}', 'n/a'):>16}"
+        )
 
 
 if __name__ == "__main__":

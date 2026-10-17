@@ -10,6 +10,7 @@ Gemini/Groq/Anthropic expose one locally). No provider is called. $0 spent.
 
 Usage: python experiments/ocr_compression_savings.py
 """
+
 from __future__ import annotations
 
 import statistics

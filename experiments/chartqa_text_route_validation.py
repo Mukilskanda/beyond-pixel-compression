@@ -10,6 +10,7 @@ likely reviewer objection to "shown on one document-QA dataset."
 Usage:
     python experiments/chartqa_text_route_validation.py --provider groq --n 15
 """
+
 from __future__ import annotations
 
 import argparse
@@ -67,14 +68,18 @@ def run(provider_name: str, n: int, max_tokens: int = 2000) -> None:
                 prompt=sample.question,
             )
             rows.append((sample.question_id, method_name, result.input_tokens))
-            print(f"  [{sample.question_id}] {method_name}: input_tokens={result.input_tokens} (ocr_chars={len(raw_text)})")
+            print(
+                f"  [{sample.question_id}] {method_name}: input_tokens={result.input_tokens} (ocr_chars={len(raw_text)})"
+            )
 
     print(f"\n{'question_id':<20}{'unreduced':>12}{'text_raw':>12}{'text_compressed':>18}")
     by_qid: dict[str, dict[str, int | None]] = {}
     for qid, method, tokens in rows:
         by_qid.setdefault(qid, {})[method] = tokens
     for qid, methods in by_qid.items():
-        print(f"{qid:<20}{methods.get('unreduced', 'n/a'):>12}{methods.get('text_raw', 'n/a'):>12}{methods.get('text_compressed', 'n/a'):>18}")
+        print(
+            f"{qid:<20}{methods.get('unreduced', 'n/a'):>12}{methods.get('text_raw', 'n/a'):>12}{methods.get('text_compressed', 'n/a'):>18}"
+        )
 
 
 if __name__ == "__main__":

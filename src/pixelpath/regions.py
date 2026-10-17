@@ -6,12 +6,12 @@ a given (regions, budget) pair, the thing greedy has to beat. Provider-tiling-
 aware region merging (packing.py) is still open — packing.py remains
 unvalidated against real provider costs.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
 
-import numpy as np
 
 from pixelpath.saliency import saliency_map
 
@@ -23,14 +23,20 @@ class Region:
     w: int
     h: int
     value: float  # sum of saliency within the region
-    cost: int      # token cost estimate (area-proportional placeholder — see packing.py)
+    cost: int  # token cost estimate (area-proportional placeholder — see packing.py)
 
     @property
     def ratio(self) -> float:
         return self.value / self.cost if self.cost else 0.0
 
 
-def propose_regions(image_path: str | Path, grid: int = 4, tokens_per_cell: int = 85, pre_downscale: float = 1.0, saliency_method: str = "spectral_residual") -> list[Region]:
+def propose_regions(
+    image_path: str | Path,
+    grid: int = 4,
+    tokens_per_cell: int = 85,
+    pre_downscale: float = 1.0,
+    saliency_method: str = "spectral_residual",
+) -> list[Region]:
     """Partition the image into a grid×grid set of candidate crop regions.
 
     `tokens_per_cell` is a placeholder linear cost model — real provider tiling

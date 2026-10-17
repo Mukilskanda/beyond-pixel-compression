@@ -5,6 +5,7 @@ Real DocVQA samples, same discipline: real numbers, no reshaping.
 Free tier: 30 RPM / 1000 RPD for qwen/qwen3.6-27b (per console.groq.com/docs/rate-limits,
 checked before this run — far more generous than Gemini's 20/day).
 """
+
 from __future__ import annotations
 
 import sys
@@ -61,7 +62,9 @@ def run() -> dict:
                 tmp_path = Path("data/scratch") / f"{method_name}_{sample.image_path.name}"
                 tmp_path.write_bytes(image_bytes)
                 result = provider.call(str(tmp_path), sample.question, max_tokens=300, **extra_settings)
-                db.log("docvqa_week2_groq", str(sample.image_path), method_name, result, sample.answers, sample.question)
+                db.log(
+                    "docvqa_week2_groq", str(sample.image_path), method_name, result, sample.answers, sample.question
+                )
                 call_count += 1
                 print(f"  [{method_name}] {sample.image_path.name}: input_tokens={result.input_tokens}")
                 time.sleep(2)
@@ -78,7 +81,9 @@ def run() -> dict:
             # the prompt, consistent with how HYBRID route treats OCR text.
             prompt = f"Extracted text:\n{ocr_result.markdown}\n\nQuestion: {sample.question}"
             result = provider.call(str(sample.image_path), prompt, max_tokens=300)
-            db.log("docvqa_week2_groq", str(sample.image_path), "ocr_everything", result, sample.answers, sample.question)
+            db.log(
+                "docvqa_week2_groq", str(sample.image_path), "ocr_everything", result, sample.answers, sample.question
+            )
             call_count += 1
             print(f"  [ocr_everything] {sample.image_path.name}: input_tokens={result.input_tokens}")
             time.sleep(2)
@@ -96,12 +101,23 @@ def run() -> dict:
                 if payload.text_context:
                     prompt = f"Extracted text:\n{payload.text_context}\n\nQuestion: {sample.question}"
                 result = provider.call(str(tmp_path), prompt, max_tokens=300)
-                db.log("docvqa_week2_groq", str(sample.image_path), f"full_pipeline_{payload.route.value}", result, sample.answers, sample.question)
+                db.log(
+                    "docvqa_week2_groq",
+                    str(sample.image_path),
+                    f"full_pipeline_{payload.route.value}",
+                    result,
+                    sample.answers,
+                    sample.question,
+                )
                 call_count += 1
-                print(f"  [pipeline/{payload.route.value}] {sample.image_path.name}: input_tokens={result.input_tokens} budget={payload.pixel_budget}")
+                print(
+                    f"  [pipeline/{payload.route.value}] {sample.image_path.name}: input_tokens={result.input_tokens} budget={payload.pixel_budget}"
+                )
                 time.sleep(2)
             else:
-                print(f"  [pipeline] {sample.image_path.name}: TEXT route (no image) — GroqProvider has no text-only path, skipping")
+                print(
+                    f"  [pipeline] {sample.image_path.name}: TEXT route (no image) — GroqProvider has no text-only path, skipping"
+                )
         except Exception as e:
             print(f"  STOPPED at pipeline/{sample.image_path.name}: {type(e).__name__}: {str(e)[:150]}")
             stopped_early = True

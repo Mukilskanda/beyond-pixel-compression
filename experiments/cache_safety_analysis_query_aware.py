@@ -12,6 +12,7 @@ Question similarity uses TF-IDF (scikit-learn, local, zero network) - see
 pixelpath/cache_similarity.QuestionSimilarity docstring for why TF-IDF
 specifically, not a downloaded embedding model.
 """
+
 from __future__ import annotations
 
 import json
@@ -58,15 +59,17 @@ def run() -> dict:
         combined = min(img_sim, q_sim)
         cached_answer = cached.answers[0]
         correctness = anls(cached_answer, query.answers)
-        pairs.append({
-            "cached_qid": cached.question_id,
-            "query_qid": query.question_id,
-            "image_similarity": img_sim,
-            "question_similarity": q_sim,
-            "combined_similarity": combined,
-            "cached_answer_would_be_correct": correctness >= 0.5,
-            "anls_if_reused": correctness,
-        })
+        pairs.append(
+            {
+                "cached_qid": cached.question_id,
+                "query_qid": query.question_id,
+                "image_similarity": img_sim,
+                "question_similarity": q_sim,
+                "combined_similarity": combined,
+                "cached_answer_would_be_correct": correctness >= 0.5,
+                "anls_if_reused": correctness,
+            }
+        )
 
     print(f"{len(pairs)} ordered (cached, query) pairs from {len(samples)} samples.")
 
@@ -76,16 +79,15 @@ def run() -> dict:
         # combined_similarity (= min of the two) >= t
         hits = [p for p in pairs if p["combined_similarity"] >= t]
         hit_rate = len(hits) / len(pairs) if pairs else 0.0
-        correctness_retained = (
-            sum(1 for p in hits if p["cached_answer_would_be_correct"]) / len(hits)
-            if hits else None
+        correctness_retained = sum(1 for p in hits if p["cached_answer_would_be_correct"]) / len(hits) if hits else None
+        curve.append(
+            {
+                "threshold": t,
+                "n_hits": len(hits),
+                "hit_rate": hit_rate,
+                "correctness_retained": correctness_retained,
+            }
         )
-        curve.append({
-            "threshold": t,
-            "n_hits": len(hits),
-            "hit_rate": hit_rate,
-            "correctness_retained": correctness_retained,
-        })
         cr_str = f"{correctness_retained:.3f}" if correctness_retained is not None else "N/A (no hits)"
         print(f"  threshold={t}: hit_rate={hit_rate:.4f} ({len(hits)} hits), correctness_retained={cr_str}")
 

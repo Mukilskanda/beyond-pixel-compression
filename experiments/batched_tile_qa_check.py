@@ -16,6 +16,7 @@ Usage:
     python experiments/batched_tile_qa_check.py --provider gemini --dataset chartqa --n 4
     python experiments/batched_tile_qa_check.py --provider groq --n 4 --offset 4 --efficient
 """
+
 from __future__ import annotations
 
 import argparse
@@ -61,7 +62,7 @@ def build_prompt(n: int, questions: list[str], efficient: bool = False) -> str:
     return (
         f"{instruction}\n{numbered}\n\n"
         f"Respond with ONLY a JSON object mapping each tile number (as a string) to "
-        f"its answer, e.g. {{\"1\": \"...\", \"2\": \"...\"}}. No other text outside the JSON."
+        f'its answer, e.g. {{"1": "...", "2": "..."}}. No other text outside the JSON.'
     )
 
 
@@ -103,7 +104,9 @@ def run(
     extra = GEMINI_LOW_DETAIL_SETTINGS if provider_name == "gemini" else {"max_tokens": max_tokens}
 
     result = provider.call(tmp_path, prompt, **extra)
-    print(f"Real call: input_tokens={result.input_tokens} output_tokens={result.output_tokens} finish_reason={result.finish_reason}")
+    print(
+        f"Real call: input_tokens={result.input_tokens} output_tokens={result.output_tokens} finish_reason={result.finish_reason}"
+    )
 
     db.log(
         dataset=f"{dataset_name}_batched_tiled_{provider_name}_{tag}",
@@ -137,12 +140,19 @@ def run(
     acc = f"{correct / total_scored * 100:.1f}%" if total_scored else "n/a"
     total_tokens = result.input_tokens + (result.output_tokens or 0)
     print(f"\nSummary: correct={correct} incorrect={incorrect} unknown={unknown} missing={missing} accuracy={acc}")
-    print(f"Real cost: 1 call, input_tokens={result.input_tokens}, output_tokens={result.output_tokens}, total={total_tokens}, finish_reason={result.finish_reason}")
+    print(
+        f"Real cost: 1 call, input_tokens={result.input_tokens}, output_tokens={result.output_tokens}, total={total_tokens}, finish_reason={result.finish_reason}"
+    )
 
     return {
-        "correct": correct, "incorrect": incorrect, "unknown": unknown, "missing": missing,
-        "input_tokens": result.input_tokens, "output_tokens": result.output_tokens,
-        "total_tokens": total_tokens, "finish_reason": result.finish_reason,
+        "correct": correct,
+        "incorrect": incorrect,
+        "unknown": unknown,
+        "missing": missing,
+        "input_tokens": result.input_tokens,
+        "output_tokens": result.output_tokens,
+        "total_tokens": total_tokens,
+        "finish_reason": result.finish_reason,
         "truncated": result.finish_reason in ("length", "max_tokens"),
     }
 
@@ -156,4 +166,11 @@ if __name__ == "__main__":
     parser.add_argument("--efficient", action="store_true", help="add the brevity/no-re-verification instruction")
     parser.add_argument("--max-tokens", type=int, default=3000)
     args = parser.parse_args()
-    run(args.provider, args.n, dataset_name=args.dataset, offset=args.offset, efficient=args.efficient, max_tokens=args.max_tokens)
+    run(
+        args.provider,
+        args.n,
+        dataset_name=args.dataset,
+        offset=args.offset,
+        efficient=args.efficient,
+        max_tokens=args.max_tokens,
+    )

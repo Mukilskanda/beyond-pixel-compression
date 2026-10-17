@@ -4,6 +4,7 @@ produced by experiments/cache_safety_analysis_query_aware.py) so §11.4's
 partial-fix finding doesn't silently drift. Same 40 real DocVQA
 samples/1560 pairs as the image-only fixture, zero API spend.
 """
+
 import json
 from pathlib import Path
 
@@ -14,7 +15,7 @@ FIXTURE_PATH = Path(__file__).parent / "fixtures" / "cache_safety_analysis_query
 pytestmark = pytest.mark.skipif(
     not FIXTURE_PATH.exists(),
     reason="tests/fixtures/cache_safety_analysis_query_aware_2026-08-16.json not present - "
-           "run experiments/cache_safety_analysis_query_aware.py to regenerate",
+    "run experiments/cache_safety_analysis_query_aware.py to regenerate",
 )
 
 

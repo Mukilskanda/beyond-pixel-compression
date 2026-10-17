@@ -2,6 +2,7 @@
 check that greedy achieves at least (1 - 1/e) of the brute-force optimum on
 small synthetic instances with deliberately overlapping regions (where the
 distinction from modular greedy_select actually matters)."""
+
 import math
 
 import numpy as np
@@ -78,9 +79,7 @@ def test_greedy_meets_1_minus_1_over_e_bound_on_overlapping_instances(seed):
         regions.append(Region(x=rx, y=ry, w=rw, h=rh, value=0.0, cost=cost))
 
     budget = 25
-    greedy_value = submodular_coverage_value(
-        submodular_greedy_select(regions, budget, sal), sal
-    )
+    greedy_value = submodular_coverage_value(submodular_greedy_select(regions, budget, sal), sal)
     opt_value = brute_force_optimal(regions, budget, sal)
 
     if opt_value == 0:

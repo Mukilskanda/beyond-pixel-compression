@@ -19,6 +19,7 @@ Usage:
     python experiments/text_route_real_validation.py --provider groq --n 10
     python experiments/text_route_real_validation.py --provider gemini --n 5
 """
+
 from __future__ import annotations
 
 import argparse
@@ -134,14 +135,26 @@ def run(provider_name: str, n: int, max_tokens: int = 1024, offset: int | None =
     for qid, method, tokens in rows:
         by_qid.setdefault(qid, {})[method] = tokens
     for qid, methods in by_qid.items():
-        print(f"{qid:<14}{methods.get('unreduced', 'n/a'):>12}{methods.get('text_raw', 'n/a'):>12}{methods.get('text_compressed', 'n/a'):>18}")
+        print(
+            f"{qid:<14}{methods.get('unreduced', 'n/a'):>12}{methods.get('text_raw', 'n/a'):>12}{methods.get('text_compressed', 'n/a'):>18}"
+        )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--provider", choices=list(PROVIDERS), required=True)
     parser.add_argument("--n", type=int, required=True)
-    parser.add_argument("--max-tokens", type=int, default=1024, help="raise past qwen3.6-27b's <think> preamble (paper/draft.md §9.4, §12.4)")
-    parser.add_argument("--offset", type=int, default=None, help="skip the first N DocVQA samples; omit to auto-resume from how many this provider has already done (see next_offset())")
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=1024,
+        help="raise past qwen3.6-27b's <think> preamble (paper/draft.md §9.4, §12.4)",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=None,
+        help="skip the first N DocVQA samples; omit to auto-resume from how many this provider has already done (see next_offset())",
+    )
     args = parser.parse_args()
     run(args.provider, args.n, max_tokens=args.max_tokens, offset=args.offset)

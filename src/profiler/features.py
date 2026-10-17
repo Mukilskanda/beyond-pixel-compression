@@ -1,4 +1,5 @@
 """Stage 1 profiler: cheap local features, target <15ms. Must never call the API."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,11 +11,11 @@ import numpy as np
 
 @dataclass
 class ProfileFeatures:
-    text_density: float       # edge-density proxy for text presence, 0-1
-    whitespace_ratio: float   # fraction of near-uniform grid cells, 0-1
+    text_density: float  # edge-density proxy for text presence, 0-1
+    whitespace_ratio: float  # fraction of near-uniform grid cells, 0-1
     layout_regularity: float  # fraction of pixels on detected lines, 0-1
-    color_entropy: float      # histogram entropy, bits
-    spatial_variance: float   # mean Laplacian energy (unnormalized)
+    color_entropy: float  # histogram entropy, bits
+    spatial_variance: float  # mean Laplacian energy (unnormalized)
 
 
 def _text_density(gray: np.ndarray) -> float:
@@ -22,7 +23,9 @@ def _text_density(gray: np.ndarray) -> float:
     return float(np.count_nonzero(edges)) / edges.size
 
 
-def _whitespace_ratio(gray: np.ndarray, grid: int = 16, brightness_threshold: float = 225.0, std_threshold: float = 30.0) -> float:
+def _whitespace_ratio(
+    gray: np.ndarray, grid: int = 16, brightness_threshold: float = 225.0, std_threshold: float = 30.0
+) -> float:
     """Fraction of grid cells that are blank/background: near-white AND locally
     smooth (low variance).
 
@@ -50,7 +53,7 @@ def _whitespace_ratio(gray: np.ndarray, grid: int = 16, brightness_threshold: fl
     total = 0
     for y in range(0, h - gh + 1, gh):
         for x in range(0, w - gw + 1, gw):
-            cell = gray[y:y + gh, x:x + gw]
+            cell = gray[y : y + gh, x : x + gw]
             if cell.mean() >= brightness_threshold and cell.std() < std_threshold:
                 uniform_cells += 1
             total += 1

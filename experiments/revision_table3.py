@@ -28,11 +28,11 @@ Usage:
     python experiments/revision_table3.py --provider groq --dataset docvqa --offsets 0,4,8
     python experiments/revision_table3.py --provider gemini --dataset docvqa --offsets 0,4,8 --conditions sep,multi,tiled
 """
+
 from __future__ import annotations
 
 import argparse
 import base64
-import io
 import json
 import re
 import sys
@@ -106,8 +106,13 @@ def multi_image_call(provider, image_paths: list[Path], prompt: str, cache: Resp
         usage = resp.usage_metadata
         fr = resp.candidates[0].finish_reason if getattr(resp, "candidates", None) else None
         result = CallResult(
-            text=resp.text or "", input_tokens=usage.prompt_token_count, output_tokens=usage.candidates_token_count,
-            latency_s=time.monotonic() - start, model=provider.model, raw={}, finish_reason=str(fr).lower() if fr else None,
+            text=resp.text or "",
+            input_tokens=usage.prompt_token_count,
+            output_tokens=usage.candidates_token_count,
+            latency_s=time.monotonic() - start,
+            model=provider.model,
+            raw={},
+            finish_reason=str(fr).lower() if fr else None,
         )
     else:
         settings = dict(settings)
@@ -119,11 +124,16 @@ def multi_image_call(provider, image_paths: list[Path], prompt: str, cache: Resp
             content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
         content.append({"type": "text", "text": prompt})
         resp = provider.client.chat.completions.create(
-            model=provider.model, max_tokens=max_tokens, messages=[{"role": "user", "content": content}], **settings)
+            model=provider.model, max_tokens=max_tokens, messages=[{"role": "user", "content": content}], **settings
+        )
         result = CallResult(
-            text=resp.choices[0].message.content or "", input_tokens=resp.usage.prompt_tokens,
-            output_tokens=resp.usage.completion_tokens, latency_s=time.monotonic() - start, model=resp.model,
-            raw={}, finish_reason=str(resp.choices[0].finish_reason).lower(),
+            text=resp.choices[0].message.content or "",
+            input_tokens=resp.usage.prompt_tokens,
+            output_tokens=resp.usage.completion_tokens,
+            latency_s=time.monotonic() - start,
+            model=resp.model,
+            raw={},
+            finish_reason=str(resp.choices[0].finish_reason).lower(),
         )
     cache.put(blob, provider.model, key, result.__dict__)
     return result
@@ -136,7 +146,7 @@ def multi_prompt(questions: list[str]) -> str:
         f"Answer EACH of the following {len(questions)} questions, one per image, using ONLY the content of that "
         f"specific image:\n{numbered}\n\n"
         f"Respond with ONLY a JSON object mapping each image number (as a string) to its answer, "
-        f"e.g. {{\"1\": \"...\", \"2\": \"...\"}}. No other text outside the JSON."
+        f'e.g. {{"1": "...", "2": "..."}}. No other text outside the JSON.'
     )
 
 
@@ -145,7 +155,7 @@ def truncated(r: CallResult) -> bool:
 
 
 def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sleep_s):
-    samples = DATASETS[dataset](limit=offset + N)[offset:offset + N]
+    samples = DATASETS[dataset](limit=offset + N)[offset : offset + N]
     provider = GeminiProvider(cache=cache) if provider_name == "gemini" else GroqProvider(model=GROQ_MODEL, cache=cache)
     base = dict(GEMINI_LOW_DETAIL_SETTINGS) if provider_name == "gemini" else {"max_tokens": 3000}
     tag = f"rev_t3_{provider_name}_{dataset}_o{offset}"
@@ -155,21 +165,30 @@ def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sle
 
     def record(cond, calls, verdicts, extra=None):
         row = {
-            "provider": provider_name, "dataset": dataset, "offset": offset, "condition": cond,
-            "n_calls": len(calls), "input_tokens": sum(c.input_tokens or 0 for c in calls),
+            "provider": provider_name,
+            "dataset": dataset,
+            "offset": offset,
+            "condition": cond,
+            "n_calls": len(calls),
+            "input_tokens": sum(c.input_tokens or 0 for c in calls),
             "output_tokens": sum(c.output_tokens or 0 for c in calls),
-            "per_call_input": [c.input_tokens for c in calls], "per_call_output": [c.output_tokens for c in calls],
+            "per_call_input": [c.input_tokens for c in calls],
+            "per_call_output": [c.output_tokens for c in calls],
             "any_truncated": any(truncated(c) for c in calls),
-            "correct": sum(1 for v in verdicts if v is True), "incorrect": sum(1 for v in verdicts if v is False),
-            "unscored": sum(1 for v in verdicts if v is None), "verdicts": verdicts,
+            "correct": sum(1 for v in verdicts if v is True),
+            "incorrect": sum(1 for v in verdicts if v is False),
+            "unscored": sum(1 for v in verdicts if v is None),
+            "verdicts": verdicts,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         if extra:
             row.update(extra)
         with open(OUT, "a", encoding="utf-8") as f:
             f.write(json.dumps(row) + "\n")
-        print(f"  {cond:<8} in={row['input_tokens']:>6} out={row['output_tokens']:>6} "
-              f"correct={row['correct']}/{N} trunc={row['any_truncated']}")
+        print(
+            f"  {cond:<8} in={row['input_tokens']:>6} out={row['output_tokens']:>6} "
+            f"correct={row['correct']}/{N} trunc={row['any_truncated']}"
+        )
         return row
 
     grid = tile_images([s.image_path for s in samples], tile_size=(600, 800))
@@ -182,8 +201,14 @@ def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sle
         calls, verdicts = [], []
         for s in samples:
             r = with_retry(lambda s=s: provider.call(s.image_path, s.question, **dict(base)), "sep")
-            db.log(dataset=f"{tag}_sep", image_path=str(s.image_path), method="rev_sep", result=r,
-                   ground_truths=s.answers, prompt=s.question)
+            db.log(
+                dataset=f"{tag}_sep",
+                image_path=str(s.image_path),
+                method="rev_sep",
+                result=r,
+                ground_truths=s.answers,
+                prompt=s.question,
+            )
             calls.append(r)
             verdicts.append(None if truncated(r) else judge_one(s.question, r.text, s.answers))
             time.sleep(sleep_s)
@@ -192,31 +217,60 @@ def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sle
     if "multi" in conditions:
         prompt = multi_prompt([s.question for s in samples])
         try:
-            r = with_retry(lambda: multi_image_call(provider, [s.image_path for s in samples], prompt, cache, **dict(base)), "multi")
+            r = with_retry(
+                lambda: multi_image_call(provider, [s.image_path for s in samples], prompt, cache, **dict(base)),
+                "multi",
+            )
         except DailyQuotaExhausted:
             raise
         except Exception as exc:
             print(f"  multi   REQUEST FAILED: {str(exc)[:300]}")
             with open(OUT, "a", encoding="utf-8") as f:
-                f.write(json.dumps({"provider": provider_name, "dataset": dataset, "offset": offset,
-                                    "condition": "multi", "error": str(exc)[:500]}) + "\n")
+                f.write(
+                    json.dumps(
+                        {
+                            "provider": provider_name,
+                            "dataset": dataset,
+                            "offset": offset,
+                            "condition": "multi",
+                            "error": str(exc)[:500],
+                        }
+                    )
+                    + "\n"
+                )
         else:
-            db.log(dataset=f"{tag}_multi", image_path=";".join(str(s.image_path) for s in samples),
-                   method="rev_multi_n4", result=r, ground_truths=["n/a"], prompt=prompt)
+            db.log(
+                dataset=f"{tag}_multi",
+                image_path=";".join(str(s.image_path) for s in samples),
+                method="rev_multi_n4",
+                result=r,
+                ground_truths=["n/a"],
+                prompt=prompt,
+            )
             answers = parse_batched_answers(r.text, N)
-            verdicts = [judge_one(s.question, answers[str(k)], s.answers) if str(k) in answers else None
-                        for k, s in enumerate(samples, start=1)]
+            verdicts = [
+                judge_one(s.question, answers[str(k)], s.answers) if str(k) in answers else None
+                for k, s in enumerate(samples, start=1)
+            ]
             record("multi", [r], verdicts, {"parsed": len(answers)})
         time.sleep(sleep_s)
 
     if "tiled" in conditions:
         prompt = build_prompt(N, [s.question for s in samples])
         r = with_retry(lambda: provider.call(grid_path, prompt, **dict(base)), "tiled")
-        db.log(dataset=f"{tag}_tiled", image_path=str(grid_path), method="rev_tiled_n4", result=r,
-               ground_truths=["n/a"], prompt=prompt)
+        db.log(
+            dataset=f"{tag}_tiled",
+            image_path=str(grid_path),
+            method="rev_tiled_n4",
+            result=r,
+            ground_truths=["n/a"],
+            prompt=prompt,
+        )
         answers = parse_batched_answers(r.text, N)
-        verdicts = [judge_one(s.question, answers[str(k)], s.answers) if str(k) in answers else None
-                    for k, s in enumerate(samples, start=1)]
+        verdicts = [
+            judge_one(s.question, answers[str(k)], s.answers) if str(k) in answers else None
+            for k, s in enumerate(samples, start=1)
+        ]
         record("tiled", [r], verdicts, {"parsed": len(answers)})
         time.sleep(sleep_s)
 
@@ -226,11 +280,19 @@ def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sle
         if provider_name == "groq":
             pt["max_tokens"] = 500 + 250 * N
         for k, s in enumerate(samples, start=1):
-            prompt = (f"This image is a {N}-tile grid, tiles labeled 'Tile 1' through 'Tile {N}'. "
-                      f"Referring ONLY to Tile {k}, answer this question about that specific sub-image: {s.question}")
+            prompt = (
+                f"This image is a {N}-tile grid, tiles labeled 'Tile 1' through 'Tile {N}'. "
+                f"Referring ONLY to Tile {k}, answer this question about that specific sub-image: {s.question}"
+            )
             r = with_retry(lambda prompt=prompt: provider.call(grid_path, prompt, **dict(pt)), "pertile")
-            db.log(dataset=f"{tag}_pertile", image_path=str(grid_path), method="rev_pertile_n4", result=r,
-                   ground_truths=s.answers, prompt=prompt)
+            db.log(
+                dataset=f"{tag}_pertile",
+                image_path=str(grid_path),
+                method="rev_pertile_n4",
+                result=r,
+                ground_truths=s.answers,
+                prompt=prompt,
+            )
             calls.append(r)
             verdicts.append(None if truncated(r) else judge_one(s.question, r.text, s.answers))
             time.sleep(sleep_s)

@@ -33,6 +33,7 @@ this is real, not a fluke, budget for it. `max_scan_rows` and
 `max_scan_seconds` both cap how long a single call will try before giving
 up with whatever it found.
 """
+
 from __future__ import annotations
 
 import time
@@ -75,9 +76,7 @@ def load_mpdocvqa_pages(
     if doc_id is not None:
         cached = sorted(cache_dir.glob(f"{doc_id}_p*.png"))
         if len(cached) >= n_pages:
-            return [
-                MPDocVQAPage(doc_id=doc_id, page_index=i, image_path=p) for i, p in enumerate(cached[:n_pages])
-            ]
+            return [MPDocVQAPage(doc_id=doc_id, page_index=i, image_path=p) for i, p in enumerate(cached[:n_pages])]
     else:
         # No specific doc requested: reuse whatever's already cached rather
         # than re-streaming, if it looks like a complete prior fetch.

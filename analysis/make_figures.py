@@ -5,21 +5,30 @@ experiments/revision_recount.py output) or a published rate.
 
 Usage (from the repository root): python analysis/make_figures.py
 """
+
 import json
 import math
 from collections import defaultdict
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams.update({
-    "font.family": "serif", "font.size": 9.5, "axes.titlesize": 9.5, "axes.labelsize": 9.5,
-    "legend.fontsize": 8.5, "xtick.labelsize": 9, "ytick.labelsize": 9,
-    "pdf.fonttype": 42,
-})
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.size": 9.5,
+        "axes.titlesize": 9.5,
+        "axes.labelsize": 9.5,
+        "legend.fontsize": 8.5,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "pdf.fonttype": 42,
+    }
+)
 W = 3.5
 OUT = Path("paper/figures")
 JSONL = Path("results/revision_table3.jsonl")
@@ -70,7 +79,9 @@ def fig_fidelity():
     lo = [p - 100 * c[0] for p, c in zip(pct, ci)]
     hi = [100 * c[1] - p for p, c in zip(pct, ci)]
     fig, ax = plt.subplots(figsize=(W, 1.95))
-    bars = ax.bar(groups, pct, yerr=[lo, hi], capsize=4, width=0.55, color=["#b91c1c", "#1d4ed8", "#f87171"], ecolor="#111827")
+    bars = ax.bar(
+        groups, pct, yerr=[lo, hi], capsize=4, width=0.55, color=["#b91c1c", "#1d4ed8", "#f87171"], ecolor="#111827"
+    )
     for b, a, m, c in zip(bars, lost, n, ci):
         ax.text(b.get_x() + b.get_width() / 2, 100 * c[1] + 2, f"{a}/{m}", ha="center", fontsize=9)
     ax.set_ylabel("Answers lost (%)")
@@ -98,7 +109,11 @@ def table3_rows():
 
 def fig_cost_dollars():
     agg = table3_rows()
-    cells = [("groq", "docvqa", "Groq\nDocVQA"), ("groq", "chartqa", "Groq\nChartQA"), ("gemini", "docvqa", "Gemini\nDocVQA")]
+    cells = [
+        ("groq", "docvqa", "Groq\nDocVQA"),
+        ("groq", "chartqa", "Groq\nChartQA"),
+        ("gemini", "docvqa", "Gemini\nDocVQA"),
+    ]
     labels, sep, tiled = [], [], []
     for prov, ds, lab in cells:
         a = agg.get((prov, ds))

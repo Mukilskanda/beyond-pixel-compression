@@ -3,6 +3,7 @@ of router decision — even to photos/charts/counting images where OCR is the
 wrong tool. Cheap, and its failure pattern is informative: this is what you'd
 get with no router at all, i.e. the ablation "text path only, no routing."
 """
+
 from __future__ import annotations
 
 from pathlib import Path

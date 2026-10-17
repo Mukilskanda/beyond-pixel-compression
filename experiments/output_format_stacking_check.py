@@ -19,6 +19,7 @@ output_tokens compared directly.
 Usage:
     python experiments/output_format_stacking_check.py --n 4
 """
+
 from __future__ import annotations
 
 import argparse
@@ -85,7 +86,9 @@ def run(n: int, provider_name: str = "gemini", max_tokens: int = 2500, sleep_s: 
             )
             verdict = judge_correctness(sample.question, result.text or "", sample.answers, judge)
             rows.append((k, method_name, verdict, result.input_tokens, result.output_tokens))
-            print(f"  tile={k}/{n} {method_name}: verdict={verdict} input={result.input_tokens} output={result.output_tokens}")
+            print(
+                f"  tile={k}/{n} {method_name}: verdict={verdict} input={result.input_tokens} output={result.output_tokens}"
+            )
             time.sleep(sleep_s)
 
     print(f"\n{'tile':>6}{'method':<14}{'input_tok':>12}{'output_tok':>12}{'verdict':>10}")
@@ -99,8 +102,12 @@ def run(n: int, provider_name: str = "gemini", max_tokens: int = 2500, sleep_s: 
         avg_out_constrained = sum(o for _, o, _ in constrained) / len(constrained)
         correct_free = sum(1 for _, _, v in free if v is True)
         correct_constrained = sum(1 for _, _, v in constrained if v is True)
-        print(f"\nAvg output tokens: free_form={avg_out_free:.1f}, constrained={avg_out_constrained:.1f}, ratio={avg_out_constrained/avg_out_free:.2f}")
-        print(f"Correct (judge=True): free_form={correct_free}/{len(free)}, constrained={correct_constrained}/{len(constrained)}")
+        print(
+            f"\nAvg output tokens: free_form={avg_out_free:.1f}, constrained={avg_out_constrained:.1f}, ratio={avg_out_constrained/avg_out_free:.2f}"
+        )
+        print(
+            f"Correct (judge=True): free_form={correct_free}/{len(free)}, constrained={correct_constrained}/{len(constrained)}"
+        )
 
 
 if __name__ == "__main__":

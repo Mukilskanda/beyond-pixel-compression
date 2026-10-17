@@ -4,6 +4,7 @@ experiments/rerun_region_ablations.py; a copy is kept in tests/fixtures/
 for a fixture that doesn't require re-downloading DocVQA to test against).
 Zero API calls involved anywhere in this ablation - purely local
 saliency/region-selection code."""
+
 import json
 from pathlib import Path
 

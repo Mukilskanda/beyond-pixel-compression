@@ -11,6 +11,7 @@ Output: agreement, Cohen's kappa (overall and per dataset) and the confusion
 
 Usage (from the repository root): python audit/compute_agreement.py
 """
+
 from __future__ import annotations
 
 import csv
@@ -40,7 +41,9 @@ def main() -> None:
     groups: dict[str, list[tuple[bool, bool]]] = {"all": [], "docvqa": [], "chartqa": []}
     with open(ROOT / "audit/judge_validation_sample_scored.csv", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            prompt, resp = db.execute("SELECT prompt, response_text FROM runs WHERE id=?", (int(row["row_id"]),)).fetchone()
+            prompt, resp = db.execute(
+                "SELECT prompt, response_text FROM runs WHERE id=?", (int(row["row_id"]),)
+            ).fetchone()
             j = judge[(prompt, _strip_think_block(resp) if resp else "")][0]
             h = j if row["human_correct_1_or_0"].strip() == "1" else (not j)
             ds = "docvqa" if row["dataset"].startswith("docvqa") else "chartqa"
@@ -50,9 +53,11 @@ def main() -> None:
         agree, n, k = kappa(pairs)
         print(f"{name:<8} agreement {agree}/{n} ({100 * agree / n:.1f}%)  Cohen's kappa {k:.2f}")
     v = groups["all"]
-    print("confusion (judge, human): "
-          f"YES/YES={sum(j and h for j, h in v)}  YES/NO={sum(j and not h for j, h in v)}  "
-          f"NO/YES={sum(h and not j for j, h in v)}  NO/NO={sum(not j and not h for j, h in v)}")
+    print(
+        "confusion (judge, human): "
+        f"YES/YES={sum(j and h for j, h in v)}  YES/NO={sum(j and not h for j, h in v)}  "
+        f"NO/YES={sum(h and not j for j, h in v)}  NO/NO={sum(not j and not h for j, h in v)}"
+    )
 
 
 if __name__ == "__main__":

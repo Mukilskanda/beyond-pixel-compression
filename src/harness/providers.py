@@ -24,6 +24,7 @@ Four backends behind one interface:
   inference platforms have been known to have incomplete metering; this was
   explicitly checked before use (see paper/draft.md §9).
 """
+
 from __future__ import annotations
 
 import base64
@@ -47,6 +48,7 @@ except ImportError:  # running as a script from inside harness/
 # installed (falls back to whatever's already in the environment).
 try:
     from dotenv import load_dotenv
+
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 except ImportError:
     pass
@@ -88,7 +90,9 @@ class CallResult:
 class OllamaProvider:
     """Local, free, unlimited. No real token cost — dev/test only, never for measurement runs."""
 
-    def __init__(self, model: str = "llava", base_url: str = "http://localhost:11434", cache: ResponseCache | None = None):
+    def __init__(
+        self, model: str = "llava", base_url: str = "http://localhost:11434", cache: ResponseCache | None = None
+    ):
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.cache = cache
@@ -162,6 +166,7 @@ class GeminiProvider:
     def client(self):
         if self._client is None:
             from google import genai
+
             self._client = genai.Client()
         return self._client
 
@@ -293,6 +298,7 @@ class GroqProvider:
     def client(self):
         if self._client is None:
             import groq
+
             self._client = groq.Groq()
         return self._client
 
@@ -317,13 +323,15 @@ class GroqProvider:
         response = self.client.chat.completions.create(
             model=self.model,
             max_tokens=max_tokens,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "image_url", "image_url": image_url},
-                    {"type": "text", "text": prompt},
-                ],
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": image_url},
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
             **settings,
         )
         latency = time.monotonic() - start
@@ -407,7 +415,9 @@ class OpenRouterProvider:
     rate-limit for you — space calls out at the call site.
     """
 
-    def __init__(self, model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", cache: ResponseCache | None = None):
+    def __init__(
+        self, model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", cache: ResponseCache | None = None
+    ):
         self.model = model
         self.cache = cache
         self._client = None
@@ -416,6 +426,7 @@ class OpenRouterProvider:
     def client(self):
         if self._client is None:
             import openai
+
             self._client = openai.OpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=os.environ.get("OPENROUTER_API_KEY"),
@@ -438,13 +449,15 @@ class OpenRouterProvider:
         response = self.client.chat.completions.create(
             model=self.model,
             max_tokens=max_tokens,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "image_url", "image_url": {"url": f"data:{media_type};base64,{image_b64}"}},
-                    {"type": "text", "text": prompt},
-                ],
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": {"url": f"data:{media_type};base64,{image_b64}"}},
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
             **settings,
         )
         latency = time.monotonic() - start
@@ -485,6 +498,7 @@ class AnthropicProvider:
     def client(self):
         if self._client is None:
             import anthropic
+
             self._client = anthropic.Anthropic()
         return self._client
 
@@ -504,13 +518,15 @@ class AnthropicProvider:
         response = self.client.messages.create(
             model=self.model,
             max_tokens=max_tokens,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_b64}},
-                    {"type": "text", "text": prompt},
-                ],
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_b64}},
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
             **settings,
         )
         latency = time.monotonic() - start

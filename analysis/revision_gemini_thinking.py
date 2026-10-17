@@ -6,6 +6,7 @@ the API).
 
 Usage: python experiments/revision_gemini_thinking.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -36,14 +37,16 @@ def main() -> None:
     cache = ResponseCache("results/cache.sqlite")
     agg = {"sep": [], "tiled": []}
     for off in (0, 4, 8, 12):
-        samples = load_docvqa(limit=off + N)[off:off + N]
+        samples = load_docvqa(limit=off + N)[off : off + N]
         sep = [usage(cache, s.image_path, s.question) for s in samples]
         grid = Path("data/scratch") / f"batched_tile_n{N}_gemini_docvqa_o{off}_base.png"
         if off == 0 and not grid.exists():
             grid = Path("data/scratch/batched_tile_n4_gemini.png")
         tiled = usage(cache, grid, build_prompt(N, [s.question for s in samples]))
         s_in, s_ans, s_th = (sum(x[i] for x in sep) for i in range(3))
-        print(f"o{off:<3} sep in={s_in} answer={s_ans} thinking={s_th} | tiled in={tiled[0]} answer={tiled[1]} thinking={tiled[2]}")
+        print(
+            f"o{off:<3} sep in={s_in} answer={s_ans} thinking={s_th} | tiled in={tiled[0]} answer={tiled[1]} thinking={tiled[2]}"
+        )
         agg["sep"].append((s_in, s_ans, s_th))
         agg["tiled"].append(tiled)
     for k, v in agg.items():

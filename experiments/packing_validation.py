@@ -18,6 +18,7 @@ silently to "the provider's token cost" without that caveat.
 Usage:
     python experiments/packing_validation.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -42,16 +43,16 @@ FIXED_PROMPT = "Describe this image in one word."
 SELECTED = {
     # (filename, route) — route determines which processed-image transform
     # this validation sends, matching what harness/pipeline.py actually sends.
-    "49153.png": "hybrid",   # chart
-    "24580.png": "hybrid",   # handwritten note
-    "57349.png": "hybrid",   # company letter
-    "39079.png": "hybrid",   # ad
-    "24426.png": "hybrid",   # budget/foundation doc
-    "49168.png": "hybrid",   # schedule
-    "57366.png": "hybrid",   # fashion ad
-    "57368.png": "pixel",    # two-column table report
-    "57370.png": "pixel",    # two-column table report
-    "57373.png": "pixel",    # two-column table report
+    "49153.png": "hybrid",  # chart
+    "24580.png": "hybrid",  # handwritten note
+    "57349.png": "hybrid",  # company letter
+    "39079.png": "hybrid",  # ad
+    "24426.png": "hybrid",  # budget/foundation doc
+    "49168.png": "hybrid",  # schedule
+    "57366.png": "hybrid",  # fashion ad
+    "57368.png": "pixel",  # two-column table report
+    "57370.png": "pixel",  # two-column table report
+    "57373.png": "pixel",  # two-column table report
 }
 
 
@@ -86,7 +87,9 @@ def run_validation() -> list[dict]:
         import io
 
         image_bytes = processed_image_bytes(sample.image_path, route)
-        pil_img = Image.open(io.BytesIO(image_bytes))  # dimensions of the ACTUAL processed bytes sent, not the original file
+        pil_img = Image.open(
+            io.BytesIO(image_bytes)
+        )  # dimensions of the ACTUAL processed bytes sent, not the original file
         w, h = pil_img.size
 
         local_estimate = tile_cost(w, h)
@@ -112,8 +115,10 @@ def run_validation() -> list[dict]:
             "pct_diff": pct_diff,
         }
         results.append(row)
-        print(f"{filename:12} route={route:7} dims={w}x{h:<6} local={local_estimate:5} real={real_image_tokens:5} "
-              f"diff={diff:+6} ({pct_diff:+.1f}%)")
+        print(
+            f"{filename:12} route={route:7} dims={w}x{h:<6} local={local_estimate:5} real={real_image_tokens:5} "
+            f"diff={diff:+6} ({pct_diff:+.1f}%)"
+        )
 
     return results
 

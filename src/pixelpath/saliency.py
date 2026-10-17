@@ -11,6 +11,7 @@
   a legitimate fast-vs-fast-but-different comparator now, with the U2-Net
   upgrade still open for whenever network/dependency cost is worth paying.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

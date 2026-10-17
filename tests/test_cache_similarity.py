@@ -78,6 +78,7 @@ def test_unrelated_questions_score_lower_than_identical():
 
 def test_question_similarity_requires_fit_before_use():
     import pytest
+
     qs = QuestionSimilarity()
     with pytest.raises(RuntimeError, match="must be fit"):
         qs.similarity("a", "b")

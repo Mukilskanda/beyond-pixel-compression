@@ -31,6 +31,7 @@ trivial baseline by a real margin, that is the finding, reported as such.
 Usage:
     python experiments/fit_text_route_advisor.py
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -187,15 +188,12 @@ def fit_and_evaluate(dataset: list[dict]) -> dict:
         "baseline_always_safe_accuracy": round(baseline_always_safe, 3),
         "baseline_always_unsafe_accuracy": round(baseline_always_unsafe, 3),
         "beats_best_trivial_baseline": loo_accuracy > max(baseline_always_safe, baseline_always_unsafe),
-        "margin_over_best_trivial_baseline": round(
-            loo_accuracy - max(baseline_always_safe, baseline_always_unsafe), 3
-        ),
+        "margin_over_best_trivial_baseline": round(loo_accuracy - max(baseline_always_safe, baseline_always_unsafe), 3),
     }
 
 
 if __name__ == "__main__":
     import json
-    import os
 
     cache_db = Path("results/cache.sqlite")
     rows_before = None
@@ -214,10 +212,14 @@ if __name__ == "__main__":
         _c = sqlite3.connect(str(cache_db))
         rows_after = _c.execute("SELECT COUNT(*) FROM cache").fetchone()[0]
         _c.close()
-        print(f"cache.sqlite rows: {rows_before} -> {rows_after} (new judge API calls made: {rows_after - rows_before}, expected 0)")
+        print(
+            f"cache.sqlite rows: {rows_before} -> {rows_after} (new judge API calls made: {rows_after - rows_before}, expected 0)"
+        )
 
     if len(dataset) < 5:
-        print("Too few real paired samples to fit anything meaningful — stopping honestly rather than fitting on noise.")
+        print(
+            "Too few real paired samples to fit anything meaningful — stopping honestly rather than fitting on noise."
+        )
         sys.exit(0)
 
     result = fit_and_evaluate(dataset)

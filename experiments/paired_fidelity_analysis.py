@@ -6,6 +6,7 @@ an original max_tokens=1024 run and a later max_tokens=2000 retry), prefers
 the row with the most output_tokens (the more complete/least-truncated
 attempt) so each sample is counted once, not once per retry.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -71,7 +72,9 @@ def main() -> None:
         img_only = sum(1 for _, a, b in pairs_ur_tr if a and not b)
         txt_only = sum(1 for _, a, b in pairs_ur_tr if not a and b)
         both_wrong = sum(1 for _, a, b in pairs_ur_tr if not a and not b)
-        print(f"  both correct={both_correct}, image-only-correct={img_only}, text-only-correct={txt_only}, both wrong={both_wrong}")
+        print(
+            f"  both correct={both_correct}, image-only-correct={img_only}, text-only-correct={txt_only}, both wrong={both_wrong}"
+        )
 
 
 if __name__ == "__main__":

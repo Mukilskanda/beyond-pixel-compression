@@ -4,6 +4,7 @@ This is "system v1" from the plan (§7 timeline, week 7): the rule-based router
 wired to both paths end to end. Each function in isolation was already smoke-
 tested; this ties them together and is the thing baselines get compared against.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -24,7 +25,9 @@ class Payload:
     pixel_budget: int  # actual budget used (adaptive or the caller's override) — exposed for logging/ablation
 
 
-def build_payload(image_path: str | Path, query: str, pixel_budget: int | None = None, compress_ocr: bool = True) -> Payload:
+def build_payload(
+    image_path: str | Path, query: str, pixel_budget: int | None = None, compress_ocr: bool = True
+) -> Payload:
     """Run the full v1 pipeline and produce whatever goes into the actual API call.
 
     `pixel_budget`: None (default) uses profiler/budget.py's adaptive
@@ -49,9 +52,16 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
 
     if chosen_route == Route.TEXT:
         from textpath.ocr import image_to_markdown
+
         ocr_result = image_to_markdown(image_path)
         text_context = _maybe_compress(ocr_result.markdown, compress_ocr)
-        return Payload(route=chosen_route, image_bytes=None, text_context=text_context, features=features, pixel_budget=resolved_budget)
+        return Payload(
+            route=chosen_route,
+            image_bytes=None,
+            text_context=text_context,
+            features=features,
+            pixel_budget=resolved_budget,
+        )
 
     if chosen_route == Route.HYBRID:
         from textpath.ocr import image_to_markdown
@@ -65,9 +75,16 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
         # from greedy_select are computed but not yet used to crop — that's
         # the region-merging/packing upgrade (pixelpath/packing.py, week 6).
         from baselines.baselines import uniform_downscale
+
         low_res = uniform_downscale(image_path, scale=0.5)
         text_context = _maybe_compress(ocr_result.markdown, compress_ocr)
-        return Payload(route=chosen_route, image_bytes=low_res, text_context=text_context, features=features, pixel_budget=resolved_budget)
+        return Payload(
+            route=chosen_route,
+            image_bytes=low_res,
+            text_context=text_context,
+            features=features,
+            pixel_budget=resolved_budget,
+        )
 
     # Route.PIXEL
     from pixelpath.regions import propose_regions, greedy_select
@@ -76,11 +93,14 @@ def build_payload(image_path: str | Path, query: str, pixel_budget: int | None =
     selected = greedy_select(regions, budget=resolved_budget)
     # v1: send full image; cropping to `selected` regions is the packing.py upgrade.
     image_bytes = unreduced(image_path)
-    return Payload(route=chosen_route, image_bytes=image_bytes, text_context=None, features=features, pixel_budget=resolved_budget)
+    return Payload(
+        route=chosen_route, image_bytes=image_bytes, text_context=None, features=features, pixel_budget=resolved_budget
+    )
 
 
 def _maybe_compress(markdown: str, compress_ocr: bool) -> str:
     if not compress_ocr:
         return markdown
     from textpath.compress import compress_markdown
+
     return compress_markdown(markdown)

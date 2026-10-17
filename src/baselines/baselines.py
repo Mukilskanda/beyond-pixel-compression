@@ -1,4 +1,5 @@
 """Baseline preprocessing methods — every one must be implemented, per plan §3.2."""
+
 from __future__ import annotations
 
 import io

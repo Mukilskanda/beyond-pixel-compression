@@ -10,6 +10,7 @@ Dedupes to the most-complete (highest output_tokens) row per
 successes alongside newly-succeeded ones, so some (image_path, method)
 pairs have 2 identical-content rows.
 """
+
 from __future__ import annotations
 
 import sys
@@ -61,6 +62,7 @@ def main() -> None:
         time.sleep(1.0)
 
     from collections import defaultdict
+
     agg = defaultdict(lambda: [0, 0, 0])
     for _, method, model, verdict in results:
         if verdict is True:
@@ -94,7 +96,9 @@ def main() -> None:
             txt_only += 1
         else:
             both_wrong += 1
-    print(f"both correct={both_correct}, image-only-correct={img_only}, text-only-correct={txt_only}, both wrong={both_wrong}")
+    print(
+        f"both correct={both_correct}, image-only-correct={img_only}, text-only-correct={txt_only}, both wrong={both_wrong}"
+    )
 
 
 if __name__ == "__main__":

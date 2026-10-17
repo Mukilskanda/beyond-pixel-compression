@@ -1,4 +1,5 @@
 """Fidelity metrics: ANLS, exact match, answer agreement."""
+
 from __future__ import annotations
 
 import re
@@ -93,10 +94,10 @@ def answer_agreement(reduced_answer: str, unreduced_answer: str) -> bool:
 # plan calls for hand-labeling severity on a sample; these categories are
 # what that labeling should choose among, not a substitute for it.
 class Severity:
-    CRITICAL = 3   # wrong number/fact that would change a decision (e.g. financial totals)
-    MODERATE = 2   # wrong but non-decision-critical detail (e.g. minor description error)
-    MINOR = 1      # phrasing/formatting difference, same substantive answer
-    NONE = 0       # correct
+    CRITICAL = 3  # wrong number/fact that would change a decision (e.g. financial totals)
+    MODERATE = 2  # wrong but non-decision-critical detail (e.g. minor description error)
+    MINOR = 1  # phrasing/formatting difference, same substantive answer
+    NONE = 0  # correct
 
 
 def severity_weighted_score(is_correct: bool, severity_if_wrong: int = Severity.MODERATE) -> int:

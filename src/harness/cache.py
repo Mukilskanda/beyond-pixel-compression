@@ -1,4 +1,5 @@
 """Content-hash cache for API calls. Never pay twice for the same (image, settings, model) call."""
+
 from __future__ import annotations
 
 import hashlib
@@ -40,14 +41,10 @@ class ResponseCache:
     def get(self, image_bytes: bytes, model: str, settings: dict[str, Any]) -> dict | None:
         image_hash = self._hash_image(image_bytes)
         key = self._make_key(image_hash, model, settings)
-        row = self._conn.execute(
-            "SELECT response_json FROM cache WHERE key = ?", (key,)
-        ).fetchone()
+        row = self._conn.execute("SELECT response_json FROM cache WHERE key = ?", (key,)).fetchone()
         return json.loads(row[0]) if row else None
 
-    def put(
-        self, image_bytes: bytes, model: str, settings: dict[str, Any], response: dict
-    ) -> None:
+    def put(self, image_bytes: bytes, model: str, settings: dict[str, Any], response: dict) -> None:
         image_hash = self._hash_image(image_bytes)
         key = self._make_key(image_hash, model, settings)
         self._conn.execute(

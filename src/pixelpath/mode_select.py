@@ -22,6 +22,7 @@ content-sensitive-pricing provider, which the two providers tested are not
 (see packing.py's module docstring). Mode selection is a separate,
 independent lever.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

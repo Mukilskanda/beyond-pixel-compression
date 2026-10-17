@@ -48,6 +48,7 @@ claim. Report it as such, with the sweep, not a single headline ratio.
 Usage:
     python experiments/cross_page_dedup_check.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -142,9 +143,7 @@ def run(n_pages: int, profile: str = "medium", body: str = "short_body") -> dict
         "within_page_dedup_tokens": within_page_tokens,
         "cross_page_dedup_tokens": cross_page_tokens,
         "cross_page_vs_none": round(no_dedup_tokens / cross_page_tokens, 2) if cross_page_tokens else None,
-        "cross_page_vs_within_page": (
-            round(within_page_tokens / cross_page_tokens, 2) if cross_page_tokens else None
-        ),
+        "cross_page_vs_within_page": (round(within_page_tokens / cross_page_tokens, 2) if cross_page_tokens else None),
     }
 
 

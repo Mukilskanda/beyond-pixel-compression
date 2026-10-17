@@ -9,6 +9,7 @@ v1: hand-tuned heuristic (this file). A learned regressor trained on the §4
 label-generation sweep is the natural v2 upgrade, same relationship as
 router/rules.py -> router/learned.py.
 """
+
 from __future__ import annotations
 
 from profiler.features import ProfileFeatures

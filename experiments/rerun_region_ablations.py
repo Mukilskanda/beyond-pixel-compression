@@ -6,10 +6,10 @@ code only, never touch a provider. Confirms whether the original findings
 (stated as real, small-N results) hold up at 4-8x the sample size, and
 reports plainly if any change.
 """
+
 from __future__ import annotations
 
 import sys
-from itertools import product
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import numpy as np
 
 from data.docvqa_loader import load_docvqa
-from pixelpath.regions import Region, dp_select, greedy_select, propose_regions
+from pixelpath.regions import dp_select, greedy_select, propose_regions
 from pixelpath.saliency import saliency_map
 
 N_SAMPLES = 40
@@ -93,7 +93,7 @@ def ablation_saliency_method(samples) -> dict:
         # a coarse proxy (documents aren't guaranteed to have this layout), stated as such.
         margin_h, margin_w = int(h * 0.1), int(w * 0.1)
         border_mask = np.ones((h, w), dtype=bool)
-        border_mask[margin_h:h - margin_h, margin_w:w - margin_w] = False
+        border_mask[margin_h : h - margin_h, margin_w : w - margin_w] = False
         center_mask = ~border_mask
 
         for sal, bucket in [(sal_spectral, ratios_spectral), (sal_fine, ratios_fine)]:
@@ -107,8 +107,7 @@ def ablation_saliency_method(samples) -> dict:
         "mean_ratio_spectral_residual": float(np.mean(ratios_spectral)) if ratios_spectral else None,
         "mean_ratio_fine_grained": float(np.mean(ratios_fine)) if ratios_fine else None,
         "fine_grained_higher_on_average": (
-            float(np.mean(ratios_fine)) > float(np.mean(ratios_spectral))
-            if ratios_spectral and ratios_fine else None
+            float(np.mean(ratios_fine)) > float(np.mean(ratios_spectral)) if ratios_spectral and ratios_fine else None
         ),
     }
 
@@ -131,7 +130,11 @@ def run() -> dict:
     print(r3)
 
     return {
-        "_meta": {"n_samples": len(samples), "cost_usd": 0, "purpose": "Re-verify region-selection ablations at larger real-data scale (was 5-10 samples, now 40)"},
+        "_meta": {
+            "n_samples": len(samples),
+            "cost_usd": 0,
+            "purpose": "Re-verify region-selection ablations at larger real-data scale (was 5-10 samples, now 40)",
+        },
         "dp_vs_greedy": r1,
         "early_vs_late_discard": r2,
         "saliency_method": r3,
@@ -140,6 +143,7 @@ def run() -> dict:
 
 if __name__ == "__main__":
     import json
+
     result = run()
     out = Path("results/region_ablations_rerun.json")
     out.parent.mkdir(parents=True, exist_ok=True)

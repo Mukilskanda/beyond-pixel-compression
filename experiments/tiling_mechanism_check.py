@@ -14,10 +14,10 @@ Usage:
     python experiments/tiling_mechanism_check.py --provider gemini --ns 2,4
     python experiments/tiling_mechanism_check.py --provider groq --ns 2,4,6,9
 """
+
 from __future__ import annotations
 
 import argparse
-import io
 import sys
 from pathlib import Path
 

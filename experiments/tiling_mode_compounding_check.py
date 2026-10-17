@@ -13,6 +13,7 @@ side-by-side) vs. tiling + MEDIA_RESOLUTION_LOW, same N, same images.
 Usage:
     python experiments/tiling_mode_compounding_check.py --ns 2,4
 """
+
 from __future__ import annotations
 
 import argparse

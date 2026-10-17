@@ -24,6 +24,7 @@ answer and the new image's real ground-truth answer set - the same metric
 this project already uses for real fidelity measurement, not a new one
 invented for this analysis.
 """
+
 from __future__ import annotations
 
 import json
@@ -59,13 +60,15 @@ def run() -> dict:
         sim = float(np.dot(signatures[cached.question_id], signatures[query.question_id]))
         cached_answer = cached.answers[0]
         correctness = anls(cached_answer, query.answers)
-        pairs.append({
-            "cached_qid": cached.question_id,
-            "query_qid": query.question_id,
-            "similarity": sim,
-            "cached_answer_would_be_correct": correctness >= 0.5,
-            "anls_if_reused": correctness,
-        })
+        pairs.append(
+            {
+                "cached_qid": cached.question_id,
+                "query_qid": query.question_id,
+                "similarity": sim,
+                "cached_answer_would_be_correct": correctness >= 0.5,
+                "anls_if_reused": correctness,
+            }
+        )
 
     print(f"{len(pairs)} ordered (cached, query) pairs from {len(samples)} samples.")
 
@@ -75,14 +78,17 @@ def run() -> dict:
         hit_rate = len(hits) / len(pairs) if pairs else 0.0
         correctness_retained = (
             sum(1 for p in hits if p["cached_answer_would_be_correct"]) / len(hits)
-            if hits else None  # no hits at this threshold - undefined, not zero
+            if hits
+            else None  # no hits at this threshold - undefined, not zero
         )
-        curve.append({
-            "threshold": t,
-            "n_hits": len(hits),
-            "hit_rate": hit_rate,
-            "correctness_retained": correctness_retained,
-        })
+        curve.append(
+            {
+                "threshold": t,
+                "n_hits": len(hits),
+                "hit_rate": hit_rate,
+                "correctness_retained": correctness_retained,
+            }
+        )
         cr_str = f"{correctness_retained:.3f}" if correctness_retained is not None else "N/A (no hits)"
         print(f"  threshold={t}: hit_rate={hit_rate:.4f} ({len(hits)} hits), correctness_retained={cr_str}")
 

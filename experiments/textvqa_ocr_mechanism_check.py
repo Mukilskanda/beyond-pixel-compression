@@ -19,6 +19,7 @@ independent of tokens/cost.
 Usage:
     python experiments/textvqa_ocr_mechanism_check.py --n 15
 """
+
 from __future__ import annotations
 
 import argparse

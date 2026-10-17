@@ -15,6 +15,7 @@ on this domain without spending).
 Skips if the real TextVQA cache isn't populated (network-fetched,
 gitignored) — mirrors tests/test_cross_page_dedup_real_check.py's pattern.
 """
+
 from pathlib import Path
 
 import pytest
@@ -48,7 +49,6 @@ def test_tile_images_preserves_all_real_images_not_just_the_first():
     degenerate (near-blank) composite. Checking real pixel variance in
     each quadrant is a cheap, real (not synthetic) way to catch that."""
     import numpy as np
-    from PIL import Image
 
     paths = sorted(Path("data/textvqa_cache").glob("*.png"))[:4]
     grid = tile_images(paths, tile_size=(600, 800))

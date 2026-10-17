@@ -16,11 +16,11 @@ Output-token definition used for billing (see README):
 
 Usage (from the repository root): python analysis/reproduce_all.py
 """
+
 from __future__ import annotations
 
 import csv
 import json
-import math
 import sqlite3
 import sys
 from collections import defaultdict
@@ -135,9 +135,11 @@ def table3_and_tests() -> None:
         n = b + c
         return min(1.0, 2 * sum(comb(n, i) for i in range(min(b, c) + 1)) / 2**n)
 
-    for key, label, p in [(("docvqa", "qwen/qwen3.6-27b"), "Groq/DocVQA", 0.004),
-                          (("docvqa", "gemini-2.5-flash"), "Gemini/DocVQA", 0.001),
-                          (("chartqa", "qwen/qwen3.6-27b"), "Groq/ChartQA", 0.06)]:
+    for key, label, p in [
+        (("docvqa", "qwen/qwen3.6-27b"), "Groq/DocVQA", 0.004),
+        (("docvqa", "gemini-2.5-flash"), "Gemini/DocVQA", 0.001),
+        (("chartqa", "qwen/qwen3.6-27b"), "Groq/ChartQA", 0.06),
+    ]:
         g = groups[key]
         got = mcnemar(g["fwd"], g["rev"])
         if label == "Gemini/DocVQA":
@@ -166,11 +168,15 @@ def text_route_ratios() -> None:
     db = sqlite3.connect(RESULTS)
     by = defaultdict(dict)
     for ds, ip, m, mo, t in db.execute(
-            "SELECT dataset, image_path, method, model, input_tokens FROM runs "
-            "WHERE method IN ('unreduced','text_compressed') AND truncated=0"):
+        "SELECT dataset, image_path, method, model, input_tokens FROM runs "
+        "WHERE method IN ('unreduced','text_compressed') AND truncated=0"
+    ):
         by[(ds, ip, mo)][m] = t
-    exact = [v["unreduced"] / v["text_compressed"] for (ds, ip, mo), v in by.items()
-             if ds == "docvqa" and mo == "qwen/qwen3.6-27b" and len(v) == 2 and v["text_compressed"] > 0]
+    exact = [
+        v["unreduced"] / v["text_compressed"]
+        for (ds, ip, mo), v in by.items()
+        if ds == "docvqa" and mo == "qwen/qwen3.6-27b" and len(v) == 2 and v["text_compressed"] > 0
+    ]
     check("Groq input-only mean", rhu(sum(exact) / len(exact), 2), 11.24)
     check("Groq input-only CI low", g["ci_low"], 9.08, 0.006)
     check("Groq input-only CI high", g["ci_high"], 13.64, 0.006)
@@ -234,14 +240,22 @@ def table4() -> None:
         return sum(f(r) for r in rows) / len(rows)
 
     paper = {
-        ("groq", "docvqa"): {"sep": (6355, 438, "19/20"), "tiled": (1964, 46, "19/20"), "pertile": (7436, 329, "17/19")},
+        ("groq", "docvqa"): {
+            "sep": (6355, 438, "19/20"),
+            "tiled": (1964, 46, "19/20"),
+            "pertile": (7436, 329, "17/19"),
+        },
         ("gemini", "docvqa"): {"sep": (311, 990, "15/16"), "tiled": (217, 621, "9/16"), "multi": (427, None, "10/12")},
         ("groq", "chartqa"): {"sep": (6761, 481, "8/8"), "tiled": (1961, 34, "6/8")},
     }
     for (prov, ds), conds in paper.items():
         a = agg[(prov, ds)]
         matched = sorted({r["offset"] for r in a["sep"]} & {r["offset"] for r in a["tiled"]})
-        check(f"{prov}/{ds} matched windows", len(matched), {"groq/docvqa": 5, "gemini/docvqa": 4, "groq/chartqa": 2}[f"{prov}/{ds}"])
+        check(
+            f"{prov}/{ds} matched windows",
+            len(matched),
+            {"groq/docvqa": 5, "gemini/docvqa": 4, "groq/chartqa": 2}[f"{prov}/{ds}"],
+        )
         for cond, (pin, pout, pcor) in conds.items():
             rows = [r for r in a[cond] if r["offset"] in matched]
             check(f"{prov}/{ds} {cond} input", rhu(mean(rows, lambda r: r["input_tokens"])), pin)
@@ -250,8 +264,11 @@ def table4() -> None:
                 if prov == "gemini":
                     out += mean(rows, lambda r: sum(gthink[(r["offset"], cond)]))
                 check(f"{prov}/{ds} {cond} output (billed)", rhu(out), pout)
-            check(f"{prov}/{ds} {cond} correct",
-                  f"{sum(r['correct'] for r in rows)}/{sum(r['correct'] + r['incorrect'] for r in rows)}", pcor)
+            check(
+                f"{prov}/{ds} {cond} correct",
+                f"{sum(r['correct'] for r in rows)}/{sum(r['correct'] + r['incorrect'] for r in rows)}",
+                pcor,
+            )
         s = {r["offset"]: r["input_tokens"] for r in a["sep"]}
         t = {r["offset"]: r["input_tokens"] for r in a["tiled"]}
         ratios = [s[o] / t[o] for o in matched]
@@ -262,16 +279,21 @@ def table4() -> None:
             check("Gemini input reduction mean", round(sum(ratios) / len(ratios), 2), 1.43)
             check("Gemini range", f"{min(ratios):.2f}-{max(ratios):.2f}", "1.43-1.45")
             g3 = {c: [r for r in a[c] if r["offset"] in (0, 4, 8)] for c in ("sep", "multi", "tiled")}
-            check("Gemini 3 matched windows sep/multi/tiled correct",
-                  "/".join(f"{sum(r['correct'] for r in v)}" for v in g3.values()), "11/10/8")
+            check(
+                "Gemini 3 matched windows sep/multi/tiled correct",
+                "/".join(f"{sum(r['correct'] for r in v)}" for v in g3.values()),
+                "11/10/8",
+            )
 
     section("Fig. 3: USD per 1,000 requests (input + billed output)")
     import make_figures
 
     _, sep, tiled = make_figures.fig_cost_dollars()
-    for lab, s, t, ps, pt, pr in [("Groq/DocVQA", sep[0], tiled[0], 6.84, 1.76, 74),
-                                  ("Groq/ChartQA", sep[1], tiled[1], 7.33, 1.70, 77),
-                                  ("Gemini/DocVQA", sep[2], tiled[2], 2.57, 1.62, 37)]:
+    for lab, s, t, ps, pt, pr in [
+        ("Groq/DocVQA", sep[0], tiled[0], 6.84, 1.76, 74),
+        ("Groq/ChartQA", sep[1], tiled[1], 7.33, 1.70, 77),
+        ("Gemini/DocVQA", sep[2], tiled[2], 2.57, 1.62, 37),
+    ]:
         check(f"{lab} separate $", round(s, 2), ps)
         check(f"{lab} tiled $", round(t, 2), pt)
         check(f"{lab} reduction %", round(100 * (1 - t / s)), pr)
@@ -313,31 +335,55 @@ def misc() -> None:
     db = sqlite3.connect(RESULTS)
     by = defaultdict(dict)
     for ds, ip, m, mo, t in db.execute(
-            "SELECT dataset, image_path, method, model, input_tokens FROM runs WHERE method IN ('unreduced','text_compressed') AND truncated=0"):
+        "SELECT dataset, image_path, method, model, input_tokens FROM runs WHERE method IN ('unreduced','text_compressed') AND truncated=0"
+    ):
         by[(ds, ip, mo)][m] = t
-    n101 = sum(1 for (ds, ip, mo), v in by.items() if ds == "docvqa" and mo == "qwen/qwen3.6-27b" and len(v) == 2 and v["text_compressed"] > 0)
+    n101 = sum(
+        1
+        for (ds, ip, mo), v in by.items()
+        if ds == "docvqa" and mo == "qwen/qwen3.6-27b" and len(v) == 2 and v["text_compressed"] > 0
+    )
     check("Groq/DocVQA cost-ratio pairs", n101, 101)
 
-    toks = [t for (t,) in db.execute(
-        "SELECT MIN(input_tokens) FROM runs WHERE method='unreduced' AND model='qwen/qwen3.6-27b' "
-        "AND dataset IN ('docvqa','chartqa') AND truncated=0 GROUP BY image_path")]
+    toks = [
+        t
+        for (t,) in db.execute(
+            "SELECT MIN(input_tokens) FROM runs WHERE method='unreduced' AND model='qwen/qwen3.6-27b' "
+            "AND dataset IN ('docvqa','chartqa') AND truncated=0 GROUP BY image_path"
+        )
+    ]
     check("Groq natural images measured", len(toks), 172)
     check("Groq images at highest level (~1,830)", sum(1 for t in toks if t >= 1800), 154)
 
-    r = db.execute("SELECT MIN(input_tokens), MAX(input_tokens) FROM runs WHERE dataset='docvqa_tiled' AND model='gemini-2.5-flash'").fetchone()
+    r = db.execute(
+        "SELECT MIN(input_tokens), MAX(input_tokens) FROM runs WHERE dataset='docvqa_tiled' AND model='gemini-2.5-flash'"
+    ).fetchone()
     check("Gemini composite-call range N=2-12", f"{r[0]}-{r[1]}", "305-324")
-    r = db.execute("SELECT MIN(input_tokens), MAX(input_tokens) FROM runs WHERE dataset='docvqa_tiled' AND model='gemini-2.5-flash' AND method='tile_n4'").fetchone()
+    r = db.execute(
+        "SELECT MIN(input_tokens), MAX(input_tokens) FROM runs WHERE dataset='docvqa_tiled' AND model='gemini-2.5-flash' AND method='tile_n4'"
+    ).fetchone()
     check("Gemini per-tile N=4 range", f"{r[0]}-{r[1]}", "305-322")
-    r = db.execute("SELECT MIN(input_tokens), MAX(input_tokens) FROM runs WHERE dataset='docvqa_tiled' AND model='qwen/qwen3.6-27b' AND method='tile_n8'").fetchone()
+    r = db.execute(
+        "SELECT MIN(input_tokens), MAX(input_tokens) FROM runs WHERE dataset='docvqa_tiled' AND model='qwen/qwen3.6-27b' AND method='tile_n8'"
+    ).fetchone()
     check("Groq composite-call range N=8", f"{r[0]}-{r[1]}", "1850-1867")
 
     section("Table VI: natural images, Gemini and OpenRouter")
     imgs = {"49153": (282, 3368, 3357), "24580": (265, 3351, 909), "57349": (267, 3353, 3291)}
     for img, (gem, or12, or30) in imgs.items():
         like = f"%{img}.png"
-        g = db.execute("SELECT input_tokens FROM runs WHERE dataset='docvqa_week2' AND method='unreduced' AND image_path LIKE ?", (like,)).fetchone()
-        a = db.execute("SELECT input_tokens FROM runs WHERE model='nvidia/nemotron-nano-12b-v2-vl:free' AND image_path LIKE ?", (like,)).fetchone()
-        b = db.execute("SELECT input_tokens FROM runs WHERE model='nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free' AND image_path LIKE ?", (like,)).fetchone()
+        g = db.execute(
+            "SELECT input_tokens FROM runs WHERE dataset='docvqa_week2' AND method='unreduced' AND image_path LIKE ?",
+            (like,),
+        ).fetchone()
+        a = db.execute(
+            "SELECT input_tokens FROM runs WHERE model='nvidia/nemotron-nano-12b-v2-vl:free' AND image_path LIKE ?",
+            (like,),
+        ).fetchone()
+        b = db.execute(
+            "SELECT input_tokens FROM runs WHERE model='nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free' AND image_path LIKE ?",
+            (like,),
+        ).fetchone()
         check(f"{img} Gemini / OR-12B / OR-30B", f"{g[0]}/{a[0]}/{b[0]}", f"{gem}/{or12}/{or30}")
     check("OR-12B spread %", round(100 * (3368 - 3351) / 3351, 1), 0.5)
 

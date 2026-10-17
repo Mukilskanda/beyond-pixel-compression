@@ -36,10 +36,11 @@ def test_answer_agreement():
 # detectable, and that "we don't know" (finish_reason=None) never gets
 # silently treated as "confirmed complete."
 
+
 def test_is_truncated_recognizes_known_reasons():
-    assert is_truncated("length")       # OpenAI/Groq-shaped
-    assert is_truncated("LENGTH")       # case-insensitive
-    assert is_truncated("max_tokens")   # Anthropic-shaped
+    assert is_truncated("length")  # OpenAI/Groq-shaped
+    assert is_truncated("LENGTH")  # case-insensitive
+    assert is_truncated("max_tokens")  # Anthropic-shaped
 
 
 def test_is_truncated_false_for_normal_stop():
@@ -76,6 +77,7 @@ def test_anls_empty_ground_truth_list_scores_zero_not_silently_skipped():
 # real-billing validation run: a correct answer wrapped in a <think> block
 # scored anls=0.0 because the metric compared against the raw text
 # including the reasoning preamble, not because the answer was wrong.
+
 
 def test_anls_strips_closed_think_block_before_scoring():
     prediction = "<think>Let me look at the letterhead. It says UNIVERSITY OF CALIFORNIA.</think>\nUniversity of California, San Diego"

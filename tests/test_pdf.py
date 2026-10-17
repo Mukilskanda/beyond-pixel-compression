@@ -43,7 +43,9 @@ def test_native_text_pdf_extracts_without_ocr(tmp_path):
 
 def test_multi_page_native_text_pdf_preserves_page_order(tmp_path):
     pdf_path = tmp_path / "multi.pdf"
-    _make_text_pdf(pdf_path, ["First page content, well over ten characters", "Second page content, also well over ten characters"])
+    _make_text_pdf(
+        pdf_path, ["First page content, well over ten characters", "Second page content, also well over ten characters"]
+    )
 
     pages = extract_pdf_pages(pdf_path)
 

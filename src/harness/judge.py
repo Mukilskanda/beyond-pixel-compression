@@ -16,6 +16,7 @@ question, the ground-truth answers, and the candidate text — never which
 condition (image-route vs text-route, raw vs filtered OCR) produced it,
 so there is no route label for the judge to be biased by.
 """
+
 from __future__ import annotations
 
 from harness.metrics import _strip_think_block

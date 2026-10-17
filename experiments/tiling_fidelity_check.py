@@ -16,6 +16,7 @@ still fail the ground-truth judge check).
 Usage:
     python experiments/tiling_fidelity_check.py --provider groq --ns 2,4,6,9
 """
+
 from __future__ import annotations
 
 import argparse
@@ -57,7 +58,9 @@ def scale_max_tokens(base_max_tokens: int, n: int) -> int:
     return base_max_tokens + n * 250
 
 
-def run(provider_name: str, ns: list[int], dataset_name: str = "docvqa", max_tokens: int = 500, sleep_s: float = 2.0) -> None:
+def run(
+    provider_name: str, ns: list[int], dataset_name: str = "docvqa", max_tokens: int = 500, sleep_s: float = 2.0
+) -> None:
     max_n = max(ns)
     print(f"Loading {max_n} real {dataset_name} samples...")
     samples = DATASETS[dataset_name](limit=max_n)
@@ -104,6 +107,7 @@ def run(provider_name: str, ns: list[int], dataset_name: str = "docvqa", max_tok
 
     print(f"\n{'N':>4}{'correct':>10}{'incorrect':>12}{'unknown':>10}{'accuracy':>12}")
     from collections import defaultdict
+
     agg = defaultdict(lambda: [0, 0, 0])
     for n, k, verdict, _ in results:
         if verdict is True:
@@ -127,4 +131,10 @@ if __name__ == "__main__":
     parser.add_argument("--max-tokens", type=int, default=500)
     parser.add_argument("--sleep-s", type=float, default=2.0)
     args = parser.parse_args()
-    run(args.provider, [int(x) for x in args.ns.split(",")], dataset_name=args.dataset, max_tokens=args.max_tokens, sleep_s=args.sleep_s)
+    run(
+        args.provider,
+        [int(x) for x in args.ns.split(",")],
+        dataset_name=args.dataset,
+        max_tokens=args.max_tokens,
+        sleep_s=args.sleep_s,
+    )

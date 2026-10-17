@@ -1,4 +1,5 @@
 """Stage 2 router — v1 hand-tuned rule baseline. The learned router (week 9) must beat this."""
+
 from __future__ import annotations
 
 from enum import Enum
@@ -15,8 +16,18 @@ class Route(str, Enum):
 # Query keywords that indicate spatial/counting intent — never route these to text-only,
 # since OCR discards layout and exact positions.
 SPATIAL_INTENT_KEYWORDS = (
-    "count", "how many", "where is", "where are", "left of", "right of",
-    "above", "below", "top of", "bottom of", "color of", "shape of",
+    "count",
+    "how many",
+    "where is",
+    "where are",
+    "left of",
+    "right of",
+    "above",
+    "below",
+    "top of",
+    "bottom of",
+    "color of",
+    "shape of",
 )
 
 

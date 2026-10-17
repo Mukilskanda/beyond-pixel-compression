@@ -3,6 +3,7 @@ captured once (tests/fixtures/groq_token_cost_2026-08-16.json) so the
 cross-provider finding doesn't require spending API calls again to
 re-verify. Does NOT call any real API.
 """
+
 import json
 from pathlib import Path
 

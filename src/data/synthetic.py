@@ -10,6 +10,7 @@ Categories mirror plan §3.1:
     photo      -> VQAv2/GQA stand-in: high color variance, no text
     counting   -> TallyQA stand-in: deliberate failure case, N discrete objects
 """
+
 from __future__ import annotations
 
 import random
@@ -22,7 +23,11 @@ from PIL import Image, ImageDraw, ImageFont
 # like real document text and silently breaks profiler calibration (text_density
 # reads near-zero even on "dense text" synthetic samples). Use a real TrueType
 # font at a realistic size so profiler/router sanity checks mean something.
-_FONT_CANDIDATES = ["C:/Windows/Fonts/arial.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/System/Library/Fonts/Helvetica.ttc"]
+_FONT_CANDIDATES = [
+    "C:/Windows/Fonts/arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/System/Library/Fonts/Helvetica.ttc",
+]
 
 
 def _load_font(size: int) -> ImageFont.FreeTypeFont:

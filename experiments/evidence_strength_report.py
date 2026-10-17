@@ -25,6 +25,7 @@ things a point estimate can't:
 Usage:
     python experiments/evidence_strength_report.py
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -48,8 +49,13 @@ def _bootstrap_ci(ratios: list[float], n_boot: int = N_BOOTSTRAP, alpha: float =
     observed ratios themselves; does not require or use any new data."""
     arr = np.array(ratios)
     if len(arr) < 2:
-        return {"n": len(arr), "mean": float(arr.mean()) if len(arr) else None, "ci_low": None, "ci_high": None,
-                "note": "n<2, no CI possible"}
+        return {
+            "n": len(arr),
+            "mean": float(arr.mean()) if len(arr) else None,
+            "ci_low": None,
+            "ci_high": None,
+            "note": "n<2, no CI possible",
+        }
     boot_means = np.array([RNG.choice(arr, size=len(arr), replace=True).mean() for _ in range(n_boot)])
     return {
         "n": len(arr),
@@ -96,9 +102,7 @@ def batched_tiling_reduction_ci() -> dict:
     string as the batched trial itself. Small n — reported honestly, not
     padded."""
     conn = sqlite3.connect("results/results.sqlite")
-    rows = conn.execute(
-        "SELECT dataset, method, model, input_tokens FROM runs WHERE method = 'batched_n4'"
-    ).fetchall()
+    rows = conn.execute("SELECT dataset, method, model, input_tokens FROM runs WHERE method = 'batched_n4'").fetchall()
     unreduced_rows = conn.execute(
         "SELECT dataset, model, input_tokens FROM runs WHERE method = 'unreduced' AND truncated = 0"
     ).fetchall()
@@ -236,4 +240,6 @@ if __name__ == "__main__":
     print(json.dumps(_reverse_direction_raw_check(), indent=2))
 
     rows_after = sqlite3.connect(str(cache_db)).execute("SELECT COUNT(*) FROM cache").fetchone()[0]
-    print(f"\ncache.sqlite rows: {rows_before} -> {rows_after} (new API calls made: {rows_after - rows_before}, expected 0)")
+    print(
+        f"\ncache.sqlite rows: {rows_before} -> {rows_after} (new API calls made: {rows_after - rows_before}, expected 0)"
+    )

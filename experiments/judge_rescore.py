@@ -14,6 +14,7 @@ any other call.
 
 Usage: python experiments/judge_rescore.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -61,6 +62,7 @@ def main() -> None:
 
     # Aggregate by (model, method)
     from collections import defaultdict
+
     agg = defaultdict(lambda: [0, 0, 0])  # correct, incorrect, unknown
     for _, method, model, verdict in results:
         key = (model, method)

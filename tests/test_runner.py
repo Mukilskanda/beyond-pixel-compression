@@ -48,6 +48,7 @@ def test_log_computes_fidelity_against_ground_truth(tmp_path, sample_image):
 # truncated response scored anls=0.0 indistinguishably from a genuine wrong
 # answer.
 
+
 def test_log_does_not_score_truncated_response(tmp_path, sample_image):
     db = ResultDB(tmp_path / "results.sqlite")
     result = StubProvider(answer="500", finish_reason="length").call(sample_image, "total?")
@@ -106,9 +107,7 @@ def test_result_db_migrates_old_schema_missing_truncation_columns(tmp_path):
         )
         """
     )
-    conn.execute(
-        "INSERT INTO runs (dataset, method, response_text) VALUES ('old', 'unreduced', 'pre-existing row')"
-    )
+    conn.execute("INSERT INTO runs (dataset, method, response_text) VALUES ('old', 'unreduced', 'pre-existing row')")
     conn.commit()
     conn.close()
 

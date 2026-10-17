@@ -25,6 +25,7 @@ provider. It is not shown to reduce real cost on either tested provider
 (Gemini, Groq both show flat per-image cost regardless of region choice).
 Built and tested on its own mathematical/algorithmic merits.
 """
+
 from __future__ import annotations
 
 from itertools import combinations
@@ -36,7 +37,7 @@ from pixelpath.regions import Region
 
 def _region_mask(region: Region, shape: tuple[int, int]) -> np.ndarray:
     mask = np.zeros(shape, dtype=bool)
-    mask[region.y:region.y + region.h, region.x:region.x + region.w] = True
+    mask[region.y : region.y + region.h, region.x : region.x + region.w] = True
     return mask
 
 

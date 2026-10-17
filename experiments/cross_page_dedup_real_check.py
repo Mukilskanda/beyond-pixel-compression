@@ -32,6 +32,7 @@ than having no real data point at all.
 Usage:
     python experiments/cross_page_dedup_real_check.py
 """
+
 from __future__ import annotations
 
 import sys

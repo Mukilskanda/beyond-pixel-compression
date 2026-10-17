@@ -28,6 +28,7 @@ def test_tile_images_produces_correct_grid_shape(tmp_path):
 
 def test_tile_images_single_image():
     import tempfile
+
     with tempfile.TemporaryDirectory() as d:
         p = f"{d}/img.png"
         Image.new("RGB", (50, 50), "blue").save(p)
@@ -37,5 +38,6 @@ def test_tile_images_single_image():
 
 def test_tile_images_rejects_empty_list():
     import pytest
+
     with pytest.raises(ValueError):
         tile_images([])

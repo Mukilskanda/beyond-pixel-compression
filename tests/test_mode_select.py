@@ -7,6 +7,7 @@ the optimizer in these tests are synthetic inputs to exercise the selection
 LOGIC - real per-mode fidelity measurement (does low-resolution mode hurt
 answer quality) is future work, not yet run, and is not claimed here.
 """
+
 import pytest
 
 from pixelpath.mode_select import (

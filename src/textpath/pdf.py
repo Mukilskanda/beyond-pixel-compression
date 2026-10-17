@@ -13,6 +13,7 @@ pages, which have no embedded text layer at all.
 Uses PyMuPDF (`pymupdf`, imported as `fitz` for API compat) — already a
 project dependency for this reason, not newly justified per-call.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -19,6 +19,7 @@ Groq), since both showed flat per-image cost regardless of token/pixel
 allocation (§9.5). Built and tested on its own mathematical merits, not
 because it's known to reduce real billed cost.
 """
+
 from __future__ import annotations
 
 

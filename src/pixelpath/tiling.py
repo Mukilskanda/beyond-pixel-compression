@@ -13,6 +13,7 @@ bucket, partially or fully erasing the per-call saving. That is an
 empirical question for the real-billing mechanism check
 (experiments/tiling_mechanism_check.py), not assumed here.
 """
+
 from __future__ import annotations
 
 import math
