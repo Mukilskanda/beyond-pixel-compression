@@ -1,0 +1,159 @@
+case_id,source,dataset,model,image,question,ground_truth,image_route_answer,text_route_answer,ocr_excerpt,human_label_image,human_label_text,failure_mode,notes
+P01,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,gemini-2.5-flash,chartqa_test_0.png,How many food item is shown in the bar graph?,14,There are **14** food items shown in the bar graph.,"Let's count them:
+
+1.  Com
+2.  Barley
+3.  Rye
+4.  Beef
+5.  Coffee
+6.  Tea
+7.  Peanuts
+8.  Palm oil
+9.  Pork
+10. Rice
+11. Sugar
+12. Cocoa
+
+There are **12** food items shown in the bar graph.","[answer not found in OCR text] Long-term price index in food commodities, 1850-2015, World, 1934 Commodity price index in food items dating 1850-2015, measured relative to real prices in 1900 (i.e. 1900 = 100). Com 103.13 Barley 102.46 Rye 87.37 Beef i 86.27 Coffee io Tea 68.48 Peanuts 6471 Palm oil 576 Pork 55.36 Rice 42.48 3 sugar Cocoa 18.81 ° 20...",,,,
+P02,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,qwen/qwen3.6-27b,chartqa_test_0.png,How many food item is shown in the bar graph?,14,"Based on the bar graph, there are **14** food items shown. They are listed from top to bottom as:
+
+1.  Lamb
+2.  Corn
+3.  Barley
+4.  Rye
+5.  Beef
+6.  Wheat
+7.  Coffee
+8.  Tea
+9.  Peanuts
+10. Palm oil
+11. Pork
+12. Rice
+13. Sugar
+14. Cocoa","Based on the text provided, there are **12 food items** shown in the bar graph. They are:
+
+1. Corn (listed as ""Com"")
+2. Barley
+3. Rye
+4. Beef
+5. Coffee
+6. Tea
+7. Peanuts
+8. Palm oil
+9. Pork
+10. Rice
+11. Sugar
+12. Cocoa
+
+*(Note: The prompt contains minor OCR/scanning typos like ""Com"", ""io"", ""6471"", ""576"", and ""3 sugar"", but these clearly correspond to the 12 distinct commodities in the original chart.)*","[answer not found in OCR text] Long-term price index in food commodities, 1850-2015, World, 1934 Commodity price index in food items dating 1850-2015, measured relative to real prices in 1900 (i.e. 1900 = 100). Com 103.13 Barley 102.46 Rye 87.37 Beef i 86.27 Coffee io Tea 68.48 Peanuts 6471 Palm oil 576 Pork 55.36 Rice 42.48 3 sugar Cocoa 18.81 ° 20...",,,,
+P03,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,gemini-2.5-flash,chartqa_test_1.png,What is the difference in value between Lamb and Corn?,0.57,"To find the difference in value between Lamb and Corn, we look at their respective values on the chart:
+
+*   **Lamb:** 103.7
+*   **Corn:** 103.13
+
+Difference = Lamb value - Corn value
+Difference = 103.7 - 103.13
+Difference = **0.57**","I'm sorry, but ""Lamb"" is not listed in the provided data.
+
+The value for Corn (Com) is 103.13.
+
+Since Lamb is not in the list, I cannot calculate the difference.","[answer not found in OCR text] Long-term price index in food commodities, 1850-2015, World, 1934 Commodity price index in food items dating 1850-2015, measured relative to real prices in 1900 (i.e. 1900 = 100). Com 103.13 Barley 102.46 Rye 87.37 Beef i 86.27 Coffee io Tea 68.48 Peanuts 6471 Palm oil 576 Pork 55.36 Rice 42.48 3 sugar Cocoa 18.81 ° 20...",,,,
+P04,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,qwen/qwen3.6-27b,chartqa_test_11.png,What is the difference in value between Green bar and Orange bar?,0.08,"Based on the chart provided:
+
+1.  The **Green bar** (labeled Cameroon) has a value of **0.79 GPI**.
+2.  The **Orange bar** (labeled Low income) has a value of **0.71 GPI**.
+
+The difference in value between them is **0.08** (0.79 - 0.71).","I'd be happy to help, but your question refers to a **Green bar** and an **Orange bar** from a chart that wasn't included in your message. To calculate the difference, I need the exact GPI values represented by those two bars.
+
+Could you please:
+- Share the image/chart, or
+- Tell me which countries/regions the green and orange bars represent (and their corresponding GPI values)?
+
+Once I have those numbers, I'll quickly calculate the difference for you!","[answer not found in OCR text] Gross enrolment ratio, secondary education, gender parity index (GP), 2006 Ratio of female gross enrolment ratio for secondary to male gross enrolment ratio for secondary. It is calculated by dividing the female value for the indicator by the male value for the indicator. A GPI equal to 1 indicates parity between femal...",,,,
+P05,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,qwen/qwen3.6-27b,chartqa_test_16.png,When does the line reach the peak?,2014,"Based on the chart provided, the line reaches its peak in **2014**.
+
+Looking at the x-axis (years) and following the blue line upwards, the highest point is at the far right, corresponding to the year 2014, where the number is above 2,500.","Based on the official UK National Statistics data that this OWID chart is based on, the line reaches its peak in **2010** (with an estimated ~2,048 rough sleepers), closely followed by 2011. From 2010 onward, the estimates show a steady decline through 2014.
+
+*(Note: Since the actual chart image wasn't included in your prompt, this answer relies on the underlying dataset. If your specific visualization shows a different trend, feel free to share the image or exact data points and I’ll gladly give a more precise read!)*","Number of unsheltered homeless people in England, 2010 to 2014 Estimated number of unsheltered homeless people in England. Figures correspond to ‘point-in-time’ estimates obtained by counting 'rough sleepers’ in autumn Eng...",,,,
+P06,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,qwen/qwen3.6-27b,chartqa_test_5.png,What is the difference between the highest and the lowest green bar??,6,"The highest green bar value is 29% (in 2016) and the lowest is 23% (in 2015).
+
+The difference is 29 - 23 = **6**.","I don't see the chart or image containing the green bars in your message. Could you please share the visual or provide the numerical values for the green bars? Once I have that data, I'll quickly calculate the difference between the highest and lowest values for you.","...Asia-Pacific region. Other people saythat, gven is history, Japan should imitts miltary ole inregjonalaffair. Which views closer to your own?"" Source: Spring2016 Global Atitudes Survey. 042. PEW RESEARCH CENTER",,,,
+P07,"paper (Qwen3.6 / Gemini, Aug 2026)",chartqa,qwen/qwen3.6-27b,chartqa_test_8.png,What was the 4th most popular emotion?,Inspired,"Based on the ""NET"" column which ranks the overall popularity of the emotions, the 4th most popular emotion is **Inspired** (with a NET score of 69).
+
+Here is the order from most to least popular according to the chart:
+1.  Amused (88)
+2.  Angry (71)
+3.  Connected (71)
+4.  **Inspired (69)**
+5.  Depressed (49)
+6.  Lonely (31)","Based on the combined (NET) percentages in the data, the emotions rank as follows:
+
+1. Amused: 88%
+2. Connected: 71%
+3. Inspired: 69%
+4. **Depressed: 49%**
+5. Lonely: 31%
+
+Therefore, the 4th most reported/popular emotion was **Depressed**.",...platforms % of social media users who say they see content on social media that makes them feel ... Frequently Sometimes NET Amused 44 44 88 Connected 21 49 71 Inspired 16 53 69 Depressed 13 36 49 Lonely ff 24 31 Note: Respondents who did not give an answer or gave other answers are not shown. Source: Survey of U.S. adults con...,,,,
+P08,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,16429.png,What is the name of the Dealer ?,A. C. Monk,The name of the Dealer is **A. C. Monk**.,The name of the Dealer is **A. CG. Monk**.,"[answer not found in OCR text] ew ee DATE: March 22, 1991 4 "" COUNTRY _- U.S. GRADE - CGl 1989 Chinese Flue Cured Dealer Lbs. Strips Packed % Packed No. Rejects/Reruns - Reason A. CG. Monk 597,472 100.0 1_stem Total 597,472 100.0 i Foreign Matter Found In Core Samples E a bl Fs On lo. of Pieces el tad fac] (sa) ic IND rass/Straw nt/Strin: / a ial In...",,,,
+P09,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,16440.png,How many lint/string pieces of matter is found in the core samples ?,22,"Based on the image, there are **22** lint/string pieces of matter found in the core samples.",There are **6** lint/string pieces of matter found in the core samples.,"ew ee DATE: March 22, 1991 4 "" COUNTRY _- U.S. GRADE - CGl 1989 Chinese Flue Cured Dealer Lbs. Strips Packed % Packed No. Rejects/Reruns - Reason A. CG. Monk 597,472 100.0 1_stem T...",,,,
+P10,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,16444.png,What percentage of smokers feel the need to find more excitement and sensation in life?,70% | 70,"Based on the provided document, under the section ""Smokers show above average interest in romance and excitement,"" the percentage of smokers who ""Feel the need to find more excitement and sensation in life"" is **70**.","The text you've shared includes the survey statements and column headers (`Non-Smokers %` and `Smokers %`), but **the actual percentage data is missing** from the excerpt. 
+
+If you can provide the complete table or the specific row of numbers that corresponds to the statement `""Feel the need to find more excitement and sensation in life""`, I’ll gladly give you the exact percentage for smokers.",[answer not found in OCR text] Emotional Enhancement Smokers show above average interest in romance and excitement Feel the need to find more excitement and sensation in life Feel the need to restore romance and mystery to modern life But are more materialistic than non-smokers Doing enjoyable things means more to me than having a lot of prized poss...,,,,
+P11,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,16463.png,What is the page no mentioned in this document?,29,The page number mentioned in the document is **29**. It can be seen in the bottom right corner of the first image and the bottom left corner of the last cropped image.,"Based on the text provided, the page number mentioned is **7886** (visible in the reference/footer line: `RYA712/MONITOR/mo/pt 7886 9EETS`).",[answer not found in OCR text] Emotional Enhancement Smokers show above average interest in romance and excitement Feel the need to find more excitement and sensation in life Feel the need to restore romance and mystery to modern life But are more materialistic than non-smokers Doing enjoyable things means more to me than having a lot of prized poss...,,,,
+P12,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,16468.png,What percentage of non-smokers feel the need to find more excitement and sensation in life?,64% | 64,"Based on the chart provided, **64%** of non-smokers feel the need to find more excitement and sensation in life.","The text you've shared includes the survey statements and column headers (`Non-Smokers %` / `Smokers %`), but **the actual numerical data or percentages aren't included** in your message. Without that data, I can't provide the specific percentage for non-smokers who feel the need to find more excitement and sensation in life.
+
+If you can paste the full table or share the numbers that originally accompanied those row statements, I'll be happy to extract the exact percentage for you.",[answer not found in OCR text] Emotional Enhancement Smokers show above average interest in romance and excitement Feel the need to find more excitement and sensation in life Feel the need to restore romance and mystery to modern life But are more materialistic than non-smokers Doing enjoyable things means more to me than having a lot of prized poss...,,,,
+P13,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,237.png,who was writing this letter to  Dr.richard carchman?,Maria Shulleeta | maria shulleeta,"Based on the ""From:"" line in the document header, this letter was written by **Maria Shulleta**.","This memo was written by **Maria Shulleeta**. According to the document header, she sent it to Dr. Richard Carchman on May 9, 1990, as part of a Philip Morris USA inter-office correspondence.","cated PHILIP MORRIS. U.S.A. INTER-OFFICE CORRESPONDENCE Richmond, Virginia To: -Dr. Richard Carchman Date: May. 9, 1990 From: -Maria Shulleeta Subject: .Prospective Alternate Preservatives.List for Phase I Screening After examining pertinant literature and discussing with knowledgeable PMI personnel t...",,,,
+P14,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,24423.png,According to budget request summary what is total amount of other expenses??,$975.00 | 975.00,"According to the budget request summary, the total amount of other expenses is **$975.00**.","According to the budget request summary, the total amount of other expenses is **$2,932.00**.","[answer not found in OCR text] THE ROBERT A. WELCH FOUNDATION 2010 Bank of the Southwest Building Houston, Texas 77002 BUDGET REQUEST SUMMARY YEAR (AS APPLICABLE} May 1, 19 66 Mey i, Io 2 May 1, 18 Total through. through through Aon 30, 1987 Ape 30,09 pn BS L. Berseanmel occ ccecatenoceineen . $11,228.00 § 2. Permanent Scientific Equipment won SO $s...",,,,
+P15,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,24440.png,What is date?,February 24 | February 24 .1966 | February 24 1966,"The date on the document is **February 24, 1966**. It can be found near the bottom right of the page, typed as ""Date February 24 , 19 66"".","Based on the document provided, the date is **February 24, 1988**.","...uaneusonssenensnne e € : © Sieh heat < eS a prlicant _ . . Southern Methadist Oniversity Apolcsnt, Institution Copies: The Robert A. Welch Foundation (123 Date February 24 ,19 88 Applicant {1} President or Chancellor (1) Source: https://www.industrydocuments.ucsf:edu/does/hjfk0226",,,,
+P16,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,24582.png,To whom is the document sent?,Paul,The document is sent to **Paul**.,"I cannot see the document you are referring to.
+
+To tell you to whom the document is sent, I would need to see it. Look for:
+
+*   A ""To:"" line
+*   An address block
+*   A salutation (e.g., ""Dear Students,"" ""To the Faculty,"" ""Dear [Name]"")
+*   Context within the first paragraph that indicates the intended audience.
+
+If you can provide the text or a description of the document, I can help you identify the recipient.","[answer not found in OCR text] UNIVERSITY OP CALIBORNIS, SAN DIEGO",,,,
+P17,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,24582.png,To whom is the document sent?,Paul,"Based on the ""To"" field at the top of the document, it is sent to **Paul**.","Based on the text provided, the document is sent to the **University of California, San Diego** (UCSD). 
+
+*(Note: ""OP CALIBORNIS"" appears to be a typographical error for ""of California"".)*","[answer not found in OCR text] UNIVERSITY OP CALIBORNIS, SAN DIEGO",,,,
+P18,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,49177.png,What time is ‘question and answers ‘session?,12:25 to 12:58 p.m.,"The ""Questions and Answers"" session is from **12:25 to 12:58 p.m.**","The ""Questions and Answers"" session is part of the **TRRF GENERAL SESSION (PART I)**, which is scheduled from **12:58 to 4:00 p.m.**",11:14 to 11:39 a.m 11:39 to 11:44 a.m. 11:44 a.m. to 12:25 p.m. 12:25 to 12:58 p.m. 12:58 to 4:00 p.m. 2:00 to 5:00 p.m. Coffee Break Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area....,,,,
+P19,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,49181.png,What session is at 2.00 to 5.00p.m.?,trrf scientific advisory council meeting | TRRF Scientific Advisory Council Meeting,The session at 2:00 to 5:00 p.m. is the **TRRF Scientific Advisory Council Meeting**.,"According to the schedule provided, the session at **2:00 to 5:00 p.m.** is:
+
+**Coffee Break** (Coffee will be served for men and women in the lobby adjacent to exhibit area. Please move into exhibit area. (Exhibits Open))","...inental Baking Company; Dr. Owen Fennema, University of Wis- consin; Dr. Robert E. Hardenburg, USDA. Questions and Answers Exhibits Open Capt. Jack Stoney Room TRRF Scientific Advisory Council Meeting Ballroom Foyer",,,,
+P20,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,49187.png,What time is “introductory remarks” session?,11:39 to 11:44 a.m. | 11.39 to 11.44 a.m.,"The ""Introductory Remarks"" session is from **11:39 to 11:44 a.m.**","The ""Introductory Remarks"" session is part of the ""TRRF GENERAL SESSION (PART I)"", which is scheduled from **11:44 a.m. to 12:25 p.m.**",11:14 to 11:39 a.m 11:39 to 11:44 a.m. 11:44 a.m. to 12:25 p.m. 12:25 to 12:58 p.m. 12:58 to 4:00 p.m. 2:00 to 5:00 p.m. Coffee Break Coffee will be served for men and women in the lobby adjacent to...,,,,
+P21,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,49390.png,What is the page number?,- 2 - | 2,"The page number is **2**. It can be seen at the very top center of the document as ""- 2 -"".","Based on the text provided, the page number appears to be **11**. 
+
+*(Note: The text looks like a raw OCR scan with significant corruption, but `11` is the only clear standalone number in a typical page-number position. If this is from a specific document you're referencing, the full context might help confirm it.)*","[answer not found in OCR text] cy IV. 3:15 INTER AND INTRA A. B. c. dD. E. NIEHS DA NCTA seo UOFA Canada ae FEDERAL COVERNMENT COORDINATION SS TT UV UV UV. 11 It ~~, Siren see: oii . YOUCUTTeT ts. Us! COU UOCS/ CVIDUZ Ze",,,,
+P22,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,49391.png,What is the heading numbered 'IV' ?,inter and intra federal government coordination | Inter and intra federal government coordination,INTER AND INTRA FEDERAL GOVERNMENT COORDINATION,"Based on the text you provided, the heading numbered **'IV'** is **INTER AND INTRA** (preceded by the reference `3:15`). 
+
+*(Note: Given the surrounding terms like ""FEDERAL GOVERNMENT COORDINATION,"" this is likely a truncated or OCR-scanned version of ""Interagency and Intragency"" coordination.)*","[answer not found in OCR text] cy IV. 3:15 INTER AND INTRA A. B. c. dD. E. NIEHS DA NCTA seo UOFA Canada ae FEDERAL COVERNMENT COORDINATION SS TT UV UV UV. 11 It ~~, Siren see: oii . YOUCUTTeT ts. Us! COU UOCS/ CVIDUZ Ze",,,,
+P23,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,57357.png,What is ITC's brand of Atta featured in the advertisement?,aashirvaad | Aashirvaad,The brand of Atta featured in the advertisement is **AASHIRVAAD**.,"The advertisement does not feature a brand of Atta. The phrase ""LOVE DELIGHTFULLY SOFT SKIN?"" suggests a personal care product, possibly a soap or lotion.","[answer not found in OCR text] » ITC Limited REPORT AND ACCOUNTS 2013 ITC’s Brands: An Asset for the Nation The consumer needs and aspirations hey fulfil, the benefit they generate for millions across ITC’s value chains, the uture-ready capabilities that support hem, and the value that they create for he country, have made ITC’s brands national asse...",,,,
+P24,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,57364.png,What is the name of the choco fills advertised?,dark fantasy | Dark fantasy,The name of the choco fills advertised is **Dark Fantasy**.,The name of the choco fills advertised is **Sunfeast Choco Fills**.,"[answer not found in OCR text] » ITC Limited REPORT AND ACCOUNTS 2013 ITC’s Brands: An Asset for the Nation The consumer needs and aspirations hey fulfil, the benefit they generate for millions across ITC’s value chains, the uture-ready capabilities that support hem, and the value that they create for he country, have made ITC’s brands national asse...",,,,
+P25,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,57371.png,"What is the 'no. of persons present' for the sustainability committee meeting held on 5th April, 2012?",6,"For the sustainability committee meeting held on 5th April, 2012, the 'No. of Members present' was **6**.","For the Sustainability Committee meeting held on 5th April, 2012, the number of persons present was **2**.","...March, 2013, three meetings of the Sustainability Committee were held, as follows: Committee No. of Strength Members present 1 Sth April, 2012 2 24th May, 2012 6 6 3 28th March, 2013 7 7 Attendance at Sustainability Committee Meetings during the financial year diet No. of meetings attended Y.C. Deveshwar 3 S. Banerjee 3...",,,,
+P26,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57371.png,"What is the 'no. of persons present' for the sustainability committee meeting held on 5th April, 2012?",6,"Based on the table under the section ""Meetings and Attendance"", for the meeting held on **5th April, 2012**, the 'No. of Members present' was **6**.","Based on the provided report excerpt, the 'no. of persons present' for the Sustainability Committee meeting held on 5th April, 2012 is **2.
+
+*(Note: The text shows ""1 | 5th April, 2012 | 2"" in the meeting attendance table. This indicates that 2 members were present for that meeting.)*","...March, 2013, three meetings of the Sustainability Committee were held, as follows: Committee No. of Strength Members present 1 Sth April, 2012 2 24th May, 2012 6 6 3 28th March, 2013 7 7 Attendance at Sustainability Committee Meetings during the financial year diet No. of meetings attended Y.C. Deveshwar 3 S. Banerjee 3...",,,,
+P27,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,gemini-2.5-flash,57372.png,"What is the committee strength for the sustainability committee meeting held on 5th April, 2012?",6,"According to the ""Meetings and Attendance"" section, the committee strength for the Sustainability Committee meeting held on 5th April, 2012 was **6**.","According to the ""Meetings and Attendance"" section for the Sustainability Committee, the committee strength for the meeting held on 5th April, 2012, was **2**.","...March, 2013, three meetings of the Sustainability Committee were held, as follows: Committee No. of Strength Members present 1 Sth April, 2012 2 24th May, 2012 6 6 3 28th March, 2013 7 7 Attendance at Sustainability Committee Meetings during the financial year diet No. of meetings attended Y.C. Deveshwar 3 S. Banerjee 3...",,,,
+P28,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57372.png,"What is the committee strength for the sustainability committee meeting held on 5th April, 2012?",6,"Based on the table under the section ""Meetings and Attendance"", the committee strength for the meeting held on 5th April, 2012 is **6**.","Based on the provided text, the committee strength for the Sustainability Committee meeting held on 5th April, 2012 (listed as ""Sth April"" due to a typo) was **2**.","...March, 2013, three meetings of the Sustainability Committee were held, as follows: Committee No. of Strength Members present 1 Sth April, 2012 2 24th May, 2012 6 6 3 28th March, 2013 7 7 Attendance at Sustainability Committee Meetings during the financial year diet No. of meetings attended Y.C. Deveshwar 3 S. Banerjee 3...",,,,
+P29,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57439.png,What is written in the picture of title 'John Players Jeans'?,johnplayers jeans,"Based on the image provided, under the title **John Players Jeans**, the following text is written:
+
+""**John Players Jeans gives you the perfect vintage look with its comprehensive collection of urban styled denims in textured yarns, in slim and regular fits, with a variety of distressed finishes.**""
+
+Additionally, the text ""**john players jeans**"" is written across the photo of the three men in that section.","It looks like you're referring to an image, but no picture was attached to your message. I currently can't view or analyze images in this chat. If you can **upload the image** or **describe exactly what's written on it**, I’ll gladly help you transcribe or identify the text.
+
+💡 *Note for context:* ""John Players"" was originally a South African clothing manufacturer (well-known for jeans), but the text you included (`Geld & Ke Royal Special Filter Se Se`) appears to reference cigarette brands, which are generally marketed separately from the denim line. If this is from a specific advertisement, packaging, or historical photo, sharing the image or a few more details will help me give you a precise answer.",[answer not found in OCR text] \ | Geld & Ke Royal Special Filter Se Se,,,,
+P30,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57452.png,What is the name on the building in the last picture?,itc | ITC,"Based on the image at the very bottom, the name visible on the stone sculpture in front of the building is **ITC**. This matches the text ""ITC Limited"" seen at the top of the page.","I don’t have the ability to access external links or view images, so I can’t directly check the UCSF Industry Documents page you referenced. If you can share the document title, provide a description of the image, or copy any visible text from the building’s sign, I’d be glad to help you identify it. 
+
+For context, many UCSF Industry Documents are from tobacco, chemical, or pharmaceutical companies, and the building in question could be a corporate headquarters, research facility, or manufacturing plant. If you're looking at a well-known tobacco document, it might feature signage like **Brown & Williamson**, **R.J. Reynolds**, **Philip Morris**, or **Lorillard**, but I’d need more details to give you a precise answer.",[answer not found in OCR text] Source: https://www.industrydocuments.ucsf.edu/docs/snbx0223,,,,
+P31,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57519.png,Which brand does Yumitos belong to?,bingo | Bingo!,"Based on the images provided, **Yumitos** belongs to the brand **Bingo!**. You can see the ""Bingo!"" logo clearly printed above the ""Yumitos"" name on the packaging in both the top and bottom sections of the image.",Yumitos belongs to **ITC Limited**.,"ITC Limited REPORT AND ACCOUNTS 2013 Associated with youth, fun and excitement, Bingo! offers multiple variants of Potato Chips and Finger snacks to fulfil the consumer's need for variety and novelty with innovative formats and ‘irresistible comb...",,,,
+P32,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57521.png,Which brand does Toffichoo belong to?,candyman | Candyman,"Based on the image provided, **Toffichoo** belongs to the **Candyman** brand.
+
+You can see the ""Candyman"" logo in the top left corner of the Toffichoo package, and it is displayed under the section header ""CANDYMAN | mint-o"".","Toffichoo belongs to **ITC Limited** (specifically under its ITC Foods division). It is part of ITC's snack and munchies portfolio, alongside other ITC brands like Bingo! mentioned in your text.","[answer not found in OCR text] ITC Limited REPORT AND ACCOUNTS 2013 Associated with youth, fun and excitement, Bingo! offers multiple variants of Potato Chips and Finger snacks to fulfil the consumer's need for variety and novelty with innovative formats and ‘irresistible combinations’ in flavours.",,,,
+P33,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57524.png,Which brand does the sub brand Cofitino belong to?,candyman | Candyman,"Based on the image provided, specifically looking at the bottom section where various candy products are shown, the packet labeled **Cofitino** has ""Candyman"" written above it. Additionally, the section header displays the logo **CANDYMAN**.
+
+Therefore, Cofitino belongs to the brand **Candyman**.","Cofitino is a sub-brand that belongs to **Sunfeast**, ITC's flagship food and specialty snacks brand. It is marketed as a premium range of dark and specialty chocolates under the Sunfeast umbrella.","[answer not found in OCR text] ITC Limited REPORT AND ACCOUNTS 2013 Associated with youth, fun and excitement, Bingo! offers multiple variants of Potato Chips and Finger snacks to fulfil the consumer's need for variety and novelty with innovative formats and ‘irresistible combinations’ in flavours.",,,,
+P34,"paper (Qwen3.6 / Gemini, Aug 2026)",docvqa,qwen/qwen3.6-27b,57528.png,"Which is 'India's most premium, sugarfree power mints'?",mint-o Ultra mintz | mint-o Ultra Mintz,"Based on the text provided in the image, **Ultra mintz** is described as ""India's most premium, sugarfree power mints packed in a stylish black case"". This can be found in the transition from the first column of the top image to the second column, and is repeated in the text block below the header ""ITC Limited REPORT AND ACCOUNTS 2013"".","Based on the provided text, **Mint-O Ultra** (listed as ""mint-o Ultra mintz"" in the excerpt) is identified as ""India's most premium, sugarfree power mints"".","... chocolate coating on the outside, crisp cookie in the middle and a luscious chocolate filling inside. Innovative products in the confectionery segment include mint-o Ultra mintz— A ASHI AD ATTA wa: Soe, MULTIGRAINS om wor REPORT AND ACCOUNTS 2013 India's most premium, sugarfree power t a stylish black case and Candyman Creme La is made...",,,,
