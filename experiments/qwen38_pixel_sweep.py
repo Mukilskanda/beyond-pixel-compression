@@ -112,6 +112,18 @@ def main() -> None:
             except quota.BudgetExhausted as exc:
                 print(f"STOP: {exc}")
                 return
+            except Exception as exc:  # provider rejected this request (e.g. image below 32 px): record it, go on
+                msg = str(exc)
+                if "400" not in msg:
+                    raise
+                row = {"image": img["image"], "dataset": img["dataset"], "shape": img["shape"], "condition": cond,
+                       "model": MODEL, "prompt_tokens": None, "rejected": True, "error": msg[:400],
+                       "sent_size": list(__import__("PIL.Image", fromlist=["Image"]).open(path).size),
+                       "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")}
+                with open(OUT, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(row) + "\n")
+                print(f"{img['image']:<24} {cond:<13} REJECTED by provider: {msg[:120]}")
+                continue
             db.log(dataset="rev2_qwen38_pixel_sweep", image_path=str(path), method=cond, result=r, prompt=q)
             row = {"image": img["image"], "dataset": img["dataset"], "shape": img["shape"], "condition": cond,
                    "model": r.model, "prompt_tokens": r.input_tokens, "completion_tokens": r.output_tokens,

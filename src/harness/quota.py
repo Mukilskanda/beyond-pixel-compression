@@ -19,6 +19,7 @@ are recorded with cached=True but not counted.
 from __future__ import annotations
 
 import json
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -44,6 +45,18 @@ def record(provider: str, model: str, tokens: int, cached: bool, note: str = "")
            "provider": provider, "model": model, "tokens": int(tokens or 0), "cached": bool(cached), "note": note}
     with open(LEDGER, "a", encoding="utf-8") as f:
         f.write(json.dumps(row) + "\n")
+
+
+def record_block(provider: str, model: str, until_ts: float, msg: str) -> None:
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    row = {"ts": time.time(), "iso": datetime.now(timezone.utc).isoformat(timespec="seconds"), "provider": provider,
+           "model": model, "tokens": 0, "cached": False, "block_until": until_ts, "note": "provider limit: " + msg}
+    with open(LEDGER, "a", encoding="utf-8") as f:
+        f.write(json.dumps(row) + "\n")
+
+
+def blocked_until(provider: str, model: str) -> float:
+    return max([r.get("block_until", 0) for r in _rows() if r["provider"] == provider and r["model"] == model] or [0])
 
 
 def gemini_requests_today(model: str) -> int:
@@ -86,8 +99,25 @@ def metered(provider: str, model: str, fn, est_tokens: int = 0, note: str = ""):
 
     if not allow(provider, model, est_tokens=est_tokens):
         raise BudgetExhausted(f"{provider}/{model}: budget reached ({status()})")
+    if blocked_until(provider, model) > time.time():
+        until = datetime.fromtimestamp(blocked_until(provider, model)).strftime("%H:%M")
+        raise BudgetExhausted(f"{provider}/{model}: provider-reported limit, blocked until {until} ({status()})")
     providers.LAST_FROM_CACHE = False
-    result = fn()
+    try:
+        result = fn()
+    except Exception as exc:
+        # The provider's own meter is authoritative (Groq counts more than the
+        # usage fields show). On a daily-limit 429, record a block until the
+        # time the provider gives and stop cleanly.
+        msg = str(exc)
+        if "tokens per day" in msg or "TPD" in msg or "per day" in msg.lower() or "RESOURCE_EXHAUSTED" in msg:
+            wait = 3600.0
+            m = re.search(r"try again in (?:(\d+)h)?(?:(\d+)m)?([\d.]+)s", msg)
+            if m:
+                wait = int(m.group(1) or 0) * 3600 + int(m.group(2) or 0) * 60 + float(m.group(3)) + 30
+            record_block(provider, model, time.time() + wait, msg[:300])
+            raise BudgetExhausted(f"{provider}/{model}: provider daily limit, retry after {wait / 60:.0f} min") from exc
+        raise
     cached = providers.LAST_FROM_CACHE
     tokens = (result.input_tokens or 0) + (result.output_tokens or 0)
     record(provider, model, tokens, cached, note)
