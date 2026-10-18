@@ -49,9 +49,21 @@ except ImportError:  # running as a script from inside harness/
 try:
     from dotenv import load_dotenv
 
-    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+    # src/harness/providers.py -> repository root is three levels up.
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 except ImportError:
     pass
+
+
+# Set when the most recent call() / call_text_only() was answered from the
+# response cache. Revision-2 runners reset it before each call so the quota
+# ledger (harness/quota.py) counts only real API calls.
+LAST_FROM_CACHE = False
+
+
+def _mark_cached() -> None:
+    global LAST_FROM_CACHE
+    LAST_FROM_CACHE = True
 
 
 def credentials_status() -> dict[str, bool]:
@@ -106,6 +118,7 @@ class OllamaProvider:
         if self.cache is not None:
             cached = self.cache.get(image_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         image_b64 = base64.b64encode(image_bytes).decode()
@@ -180,6 +193,7 @@ class GeminiProvider:
         if self.cache is not None:
             cached = self.cache.get(image_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         img = Image.open(image_path)
@@ -237,6 +251,7 @@ class GeminiProvider:
         if self.cache is not None:
             cached = self.cache.get(content_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         config = types.GenerateContentConfig(**settings) if settings else None
@@ -309,6 +324,7 @@ class GroqProvider:
         if self.cache is not None:
             cached = self.cache.get(image_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         image_b64 = base64.standard_b64encode(image_bytes).decode()
@@ -367,6 +383,7 @@ class GroqProvider:
         if self.cache is not None:
             cached = self.cache.get(content_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         max_tokens = settings.pop("max_tokens", 1024)
@@ -440,6 +457,7 @@ class OpenRouterProvider:
         if self.cache is not None:
             cached = self.cache.get(image_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         image_b64 = base64.standard_b64encode(image_bytes).decode()
@@ -509,6 +527,7 @@ class AnthropicProvider:
         if self.cache is not None:
             cached = self.cache.get(image_bytes, self.model, settings_key)
             if cached is not None:
+                _mark_cached()
                 return CallResult(**cached)
 
         image_b64 = base64.standard_b64encode(image_bytes).decode()

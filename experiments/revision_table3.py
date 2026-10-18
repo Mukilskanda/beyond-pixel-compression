@@ -46,6 +46,7 @@ from baselines.baselines import GEMINI_LOW_DETAIL_SETTINGS
 from data.chartqa_loader import load_chartqa
 from data.docvqa_loader import load_docvqa
 from experiments.batched_tile_qa_check import build_prompt, parse_batched_answers
+from harness import quota
 from harness.cache import ResponseCache
 from harness.judge import judge_correctness
 from harness.providers import CallResult, GeminiProvider, GroqProvider
@@ -83,6 +84,26 @@ def with_retry(fn, label: str, tries: int = 4):
     raise RuntimeError(f"{label}: still rate-limited after {tries} attempts")
 
 
+class Metered:
+    """Routes a provider's calls through harness.quota.metered (revision-2)."""
+
+    def __init__(self, provider, provider_name: str, est_tokens: int):
+        self.p, self.name, self.est = provider, provider_name, est_tokens
+        self.model = provider.model
+
+    def call(self, *a, **k):
+        return quota.metered(self.name, self.p.model, lambda: self.p.call(*a, **k), est_tokens=self.est)
+
+    def call_text_only(self, *a, **k):
+        return quota.metered(self.name, self.p.model, lambda: self.p.call_text_only(*a, **k), est_tokens=self.est)
+
+
+def thoughts(r) -> int:
+    """Gemini thoughts_token_count of one call (0 when absent or not Gemini)."""
+    um = (r.raw or {}).get("usage_metadata") or {}
+    return int(um.get("thoughts_token_count") or 0)
+
+
 def multi_image_call(provider, image_paths: list[Path], prompt: str, cache: ResponseCache, **settings) -> CallResult:
     """One request carrying several separate (untiled) images. Cached on the
     concatenated image bytes + prompt + settings, like the provider wrappers."""
@@ -90,6 +111,9 @@ def multi_image_call(provider, image_paths: list[Path], prompt: str, cache: Resp
     key = {"prompt": prompt, "multi_image": len(image_paths), **settings}
     hit = cache.get(blob, provider.model, key)
     if hit is not None:
+        from harness import providers as _providers
+
+        _providers._mark_cached()
         return CallResult(**hit)
 
     start = time.monotonic()
@@ -111,7 +135,7 @@ def multi_image_call(provider, image_paths: list[Path], prompt: str, cache: Resp
             output_tokens=usage.candidates_token_count,
             latency_s=time.monotonic() - start,
             model=provider.model,
-            raw={},
+            raw={"usage_metadata": usage.model_dump() if hasattr(usage, "model_dump") else {}},
             finish_reason=str(fr).lower() if fr else None,
         )
     else:
@@ -154,9 +178,23 @@ def truncated(r: CallResult) -> bool:
     return (r.finish_reason or "") in ("length", "max_tokens", "finishreason.max_tokens")
 
 
-def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sleep_s):
+def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sleep_s, batch="rev2"):
     samples = DATASETS[dataset](limit=offset + N)[offset : offset + N]
-    provider = GeminiProvider(cache=cache) if provider_name == "gemini" else GroqProvider(model=GROQ_MODEL, cache=cache)
+    raw_provider = (
+        GeminiProvider(cache=cache) if provider_name == "gemini" else GroqProvider(model=GROQ_MODEL, cache=cache)
+    )
+    # Whole-window budget check, so a window is never left half-measured.
+    n_calls = (N if "sep" in conditions else 0) + ("multi" in conditions) + ("tiled" in conditions) + (
+        N if "pertile" in conditions else 0
+    )
+    if provider_name == "gemini":
+        ok = quota.allow("gemini", raw_provider.model, est_requests=n_calls)
+    else:
+        ok = quota.allow("groq", raw_provider.model, est_tokens=2_600 * n_calls)
+    if not ok or not quota.allow("groq", judge.model, est_tokens=600 * 4 * len(conditions)):
+        raise quota.BudgetExhausted(f"window {provider_name}/{dataset}/o{offset} does not fit today ({quota.status()})")
+    provider = Metered(raw_provider, provider_name, est_tokens=2_600)
+    judge = Metered(judge, "groq", est_tokens=600)
     base = dict(GEMINI_LOW_DETAIL_SETTINGS) if provider_name == "gemini" else {"max_tokens": 3000}
     tag = f"rev_t3_{provider_name}_{dataset}_o{offset}"
 
@@ -174,6 +212,9 @@ def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sle
             "output_tokens": sum(c.output_tokens or 0 for c in calls),
             "per_call_input": [c.input_tokens for c in calls],
             "per_call_output": [c.output_tokens for c in calls],
+            "thoughts_tokens": sum(thoughts(c) for c in calls),
+            "per_call_thoughts": [thoughts(c) for c in calls],
+            "batch": batch,
             "any_truncated": any(truncated(c) for c in calls),
             "correct": sum(1 for v in verdicts if v is True),
             "incorrect": sum(1 for v in verdicts if v is False),
@@ -218,10 +259,15 @@ def run_window(provider_name, dataset, offset, conditions, cache, db, judge, sle
         prompt = multi_prompt([s.question for s in samples])
         try:
             r = with_retry(
-                lambda: multi_image_call(provider, [s.image_path for s in samples], prompt, cache, **dict(base)),
+                lambda: quota.metered(
+                    provider_name,
+                    raw_provider.model,
+                    lambda: multi_image_call(raw_provider, [s.image_path for s in samples], prompt, cache, **dict(base)),
+                    est_tokens=8_000,
+                ),
                 "multi",
             )
-        except DailyQuotaExhausted:
+        except (DailyQuotaExhausted, quota.BudgetExhausted):
             raise
         except Exception as exc:
             print(f"  multi   REQUEST FAILED: {str(exc)[:300]}")
@@ -306,6 +352,7 @@ def main():
     ap.add_argument("--offsets", default="0,4,8")
     ap.add_argument("--conditions", default="sep,multi,tiled,pertile")
     ap.add_argument("--sleep", type=float, default=8.0)
+    ap.add_argument("--batch", default="rev2", help="label stored with each row (old rows have none = rev1)")
     a = ap.parse_args()
     cache = ResponseCache("results/cache.sqlite")
     db = ResultDB("results/results.sqlite")
@@ -314,9 +361,9 @@ def main():
     for off in [int(x) for x in a.offsets.split(",")]:
         print(f"\n=== {a.provider}/{a.dataset} offset {off} ===")
         try:
-            run_window(a.provider, a.dataset, off, conditions, cache, db, judge, a.sleep)
-        except DailyQuotaExhausted as exc:
-            print(f"DAILY QUOTA EXHAUSTED, stopping: {exc}")
+            run_window(a.provider, a.dataset, off, conditions, cache, db, judge, a.sleep, batch=a.batch)
+        except (DailyQuotaExhausted, quota.BudgetExhausted) as exc:
+            print(f"STOP (budget): {exc}")
             break
 
 

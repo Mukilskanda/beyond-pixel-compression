@@ -1,0 +1,162 @@
+[
+ {
+  "dataset": "docvqa",
+  "image": "49168.png",
+  "width_px": 850,
+  "height_px": 1644,
+  "qwen36_tokens": 789,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49172.png",
+  "width_px": 850,
+  "height_px": 1644,
+  "qwen36_tokens": 795,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49177.png",
+  "width_px": 850,
+  "height_px": 1644,
+  "qwen36_tokens": 790,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49181.png",
+  "width_px": 850,
+  "height_px": 1644,
+  "qwen36_tokens": 798,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49187.png",
+  "width_px": 850,
+  "height_px": 1644,
+  "qwen36_tokens": 790,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49392.png",
+  "width_px": 838,
+  "height_px": 1638,
+  "qwen36_tokens": 788,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49393.png",
+  "width_px": 800,
+  "height_px": 1757,
+  "qwen36_tokens": 784,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49394.png",
+  "width_px": 800,
+  "height_px": 1757,
+  "qwen36_tokens": 789,
+  "shape": "tall"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "49395.png",
+  "width_px": 838,
+  "height_px": 1638,
+  "qwen36_tokens": 786,
+  "shape": "tall"
+ },
+ {
+  "dataset": "chartqa",
+  "image": "chartqa_test_13.png",
+  "width_px": 310,
+  "height_px": 358,
+  "qwen36_tokens": 1310,
+  "shape": "near-square"
+ },
+ {
+  "dataset": "chartqa",
+  "image": "chartqa_test_12.png",
+  "width_px": 310,
+  "height_px": 358,
+  "qwen36_tokens": 1304,
+  "shape": "near-square"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "24437.png",
+  "width_px": 1695,
+  "height_px": 1553,
+  "qwen36_tokens": 1298,
+  "shape": "near-square"
+ },
+ {
+  "dataset": "chartqa",
+  "image": "chartqa_test_5.png",
+  "width_px": 309,
+  "height_px": 343,
+  "qwen36_tokens": 1305,
+  "shape": "near-square"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "39079.png",
+  "width_px": 1370,
+  "height_px": 1480,
+  "qwen36_tokens": 1300,
+  "shape": "near-square"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "32886.png",
+  "width_px": 2284,
+  "height_px": 1786,
+  "qwen36_tokens": 1820,
+  "shape": "other"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "223.png",
+  "width_px": 2554,
+  "height_px": 3177,
+  "qwen36_tokens": 1812,
+  "shape": "other"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "16529.png",
+  "width_px": 1711,
+  "height_px": 2289,
+  "qwen36_tokens": 1812,
+  "shape": "other"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "57524.png",
+  "width_px": 1701,
+  "height_px": 2386,
+  "qwen36_tokens": 1817,
+  "shape": "other"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "16456.png",
+  "width_px": 2159,
+  "height_px": 1695,
+  "qwen36_tokens": 1813,
+  "shape": "other"
+ },
+ {
+  "dataset": "docvqa",
+  "image": "57562.png",
+  "width_px": 1701,
+  "height_px": 2386,
+  "qwen36_tokens": 1812,
+  "shape": "other"
+ }
+]
