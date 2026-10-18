@@ -47,6 +47,28 @@
   "chartqa_test_53.png",
   "chartqa_test_55.png",
   "chartqa_test_59.png",
+  "chartqa_test_67.png"
+ ],
+ "candidate_items_40": [
+  "chartqa_test_24.png",
+  "chartqa_test_27.png",
+  "chartqa_test_28.png",
+  "chartqa_test_29.png",
+  "chartqa_test_30.png",
+  "chartqa_test_35.png",
+  "chartqa_test_37.png",
+  "chartqa_test_38.png",
+  "chartqa_test_41.png",
+  "chartqa_test_43.png",
+  "chartqa_test_44.png",
+  "chartqa_test_45.png",
+  "chartqa_test_48.png",
+  "chartqa_test_49.png",
+  "chartqa_test_51.png",
+  "chartqa_test_52.png",
+  "chartqa_test_53.png",
+  "chartqa_test_55.png",
+  "chartqa_test_59.png",
   "chartqa_test_67.png",
   "chartqa_test_72.png",
   "chartqa_test_77.png",
@@ -68,5 +90,7 @@
   "chartqa_test_116.png",
   "chartqa_test_117.png",
   "chartqa_test_119.png"
- ]
+ ],
+ "committed_n": 20,
+ "commitment_note": "Reduced from 40 to the first 20 candidates (loader order) on 2026-10-18 23:16 IST because Groq's daily meter counts ~2.7x the usage fields; decided before any D item was judged."
 }

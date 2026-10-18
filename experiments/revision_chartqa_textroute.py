@@ -4,9 +4,11 @@ The Sec. IV-C ChartQA result (n=13 pairs, McNemar p=0.06) used the withdrawn
 Qwen3.6-27B and cannot be extended. This is a new replication on the successor
 model and is never pooled with the Qwen3.6 data.
 
-Items: 40 ChartQA test items chosen with seed 42 from the first 120 in loader
-order, excluding every chart used by any earlier Qwen3.6 ChartQA run. The IDs
-are written to results/revision_chartqa_textroute_ids.json before any call.
+Items: 40 candidates were chosen with seed 42 from the first 120 ChartQA test
+items in loader order, excluding every chart used by any earlier Qwen3.6
+ChartQA run; on 18 Oct 2026, before any item was judged, the run was
+committed to the first 20 of them (Groq's daily meter counts ~2.7x the usage
+fields). Both lists are in results/revision_chartqa_textroute_ids.json.
 
 For each item, on Qwen3.8-27B with the dataset question:
   image route  the unreduced chart image;
@@ -46,7 +48,7 @@ from textpath.ocr import image_to_markdown
 
 MODEL = "qwen/qwen3.8-27b"
 JUDGE = "openai/gpt-oss-120b"
-N_ITEMS = 40
+N_ITEMS = 20  # pre-committed on 18 Oct 2026, before any item was judged
 POOL = 120
 MAX_TOKENS = 2000
 OUT = Path("results/revision_chartqa_textroute.jsonl")
