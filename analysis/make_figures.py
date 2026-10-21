@@ -21,6 +21,9 @@ import numpy as np
 plt.rcParams.update(
     {
         "font.family": "serif",
+        # Match the IEEE body font (Times); STIX for math and the minus sign.
+        "font.serif": ["Times New Roman", "STIXGeneral", "DejaVu Serif"],
+        "mathtext.fontset": "stix",
         "font.size": 9.5,
         "axes.titlesize": 9.5,
         "axes.labelsize": 9.5,
@@ -55,7 +58,7 @@ def fig_groq_billing():
     area = np.array([int(r["width_px"]) * int(r["height_px"]) / 1e6 for r in rows])
     tok = np.array([int(r["billed_input_tokens"]) for r in rows])
     hw = np.array([int(r["height_px"]) / int(r["width_px"]) for r in rows])
-    fig, ax = plt.subplots(figsize=(W, 1.7))
+    fig, ax = plt.subplots(figsize=(W, 1.6))
     tall = hw >= 1.8
     square = (hw >= 0.9) & (hw <= 1.2)
     other = ~(tall | square)
@@ -106,7 +109,7 @@ def fig_falsification():
     side = np.logspace(1, math.log10(8000), 400)
     tiles = np.where(side <= 384, 1, np.ceil(side / 768) ** 2)
     documented = 258 * tiles
-    fig, ax = plt.subplots(figsize=(W, 1.7))
+    fig, ax = plt.subplots(figsize=(W, 1.6))
     ax.plot(side, documented, "--", color="#b91c1c", lw=1.6, label="Documented tiling rule")
     # Square sizes logged in results/gemini_size_sweep.jsonl (usage_metadata image tokens).
     sq = sorted({(r["width"], r["image_tokens"]) for r in map(json.loads, open("results/gemini_size_sweep.jsonl", encoding="utf-8"))
@@ -126,21 +129,25 @@ def fig_falsification():
 
 
 def fig_fidelity():
-    groups = ["Groq\nDocVQA", "Gemini\nDocVQA", "Groq\nChartQA"]
-    lost = [14, 11, 5]
-    n = [99, 31, 13]
+    # Last bar: the separate Qwen3.8-27B ChartQA replication (hatched, never pooled),
+    # 10 of 17 scored pairs flipped (results/revision_chartqa_textroute.jsonl).
+    groups = ["Groq\nDocVQA", "Gemini\nDocVQA", "Groq\nChartQA", "Groq ChartQA\n(Qwen3.8)"]
+    lost = [14, 11, 5, 10]
+    n = [99, 31, 13, 17]
     pct = [100 * a / b for a, b in zip(lost, n)]
     ci = [wilson(a, b) for a, b in zip(lost, n)]
     lo = [p - 100 * c[0] for p, c in zip(pct, ci)]
     hi = [100 * c[1] - p for p, c in zip(pct, ci)]
-    fig, ax = plt.subplots(figsize=(W, 1.7))
+    fig, ax = plt.subplots(figsize=(W, 1.6))
     bars = ax.bar(
-        groups, pct, yerr=[lo, hi], capsize=4, width=0.55, color=["#b91c1c", "#1d4ed8", "#f87171"], ecolor="#111827"
+        groups, pct, yerr=[lo, hi], capsize=4, width=0.55, color=["#b91c1c", "#1d4ed8", "#f87171", "white"],
+        edgecolor=["#b91c1c", "#1d4ed8", "#f87171", "#f87171"], ecolor="#111827",
     )
+    bars[3].set_hatch("////")
     for b, a, m, c in zip(bars, lost, n, ci):
         ax.text(b.get_x() + b.get_width() / 2, 100 * c[1] + 2, f"{a}/{m}", ha="center", fontsize=9)
     ax.set_ylabel("Answers lost (%)")
-    ax.set_ylim(0, 80)
+    ax.set_ylim(0, 95)
     ax.grid(True, axis="y", alpha=0.25)
     fig.tight_layout()
     fig.savefig(OUT / "fig_fidelity.pdf", bbox_inches="tight", metadata={"CreationDate": None})
@@ -192,7 +199,7 @@ def fig_cost_dollars():
         tiled.append(usd(a["tiled"], "tiled"))
     x = np.arange(len(labels))
     w = 0.36
-    fig, ax = plt.subplots(figsize=(W, 1.7))
+    fig, ax = plt.subplots(figsize=(W, 1.6))
     b1 = ax.bar(x - w / 2, sep, w, label="4 separate calls", color="#b91c1c")
     b2 = ax.bar(x + w / 2, tiled, w, label="1 tiled batched call", color="#15803d")
     ax.set_yscale("log")
