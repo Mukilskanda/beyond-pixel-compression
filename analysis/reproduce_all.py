@@ -153,7 +153,20 @@ def table3_and_tests() -> None:
         p0 = p(a)
         return sum(p(x) for x in range(max(0, k - n2), min(k, n1) + 1) if p(x) <= p0 + 1e-12)
 
-    check("Fisher Gemini Table IV 33/44 vs 20/44", round(fisher(33, 11, 20, 24), 3), 0.009)
+    # Gemini Table IV, separate vs. tiled: the same 44 questions, so exact McNemar on discordant pairs.
+    disc = [0, 0]
+    t3 = {}
+    for line in JSONL.read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        if r.get("provider") == "gemini" and "verdicts" in r:
+            t3[(r["offset"], r["condition"])] = r["verdicts"]
+    for o in {k[0] for k in t3}:
+        for x, y in zip(t3[(o, "sep")], t3[(o, "tiled")]):
+            if x is not None and y is not None:
+                disc[0] += bool(x and not y)
+                disc[1] += bool(y and not x)
+    check("Gemini Table IV sep-only / tiled-only correct", f"{disc[0]}/{disc[1]}", "15/2")
+    check("McNemar Gemini Table IV sep vs tiled p", round(mcnemar(*disc), 3), 0.002)
 
 
 # ------------------------------------------------------------- ratios / CIs
@@ -488,7 +501,7 @@ def revision2() -> None:
     check("ChartQA Qwen3.8 share of image-correct lost %", round(100 * fwd / sum(r["image_correct"] for r in sc), 1), 66.7)
     tot = [(r["image_in"] + r["image_out"]) / (r["text_in"] + r["text_out"]) for r in d]
     pooled = sum(r["image_in"] + r["image_out"] for r in d) / sum(r["text_in"] + r["text_out"] for r in d)
-    check("ChartQA Qwen3.8 total-token ratio pooled-mean", f"{pooled:.1f}-{sum(tot) / len(tot):.1f}", "1.8-3.0")
+    check("ChartQA Qwen3.8 total-token ratio pooled-mean (not in paper text)", f"{pooled:.1f}-{sum(tot) / len(tot):.1f}", "1.8-3.0")
 
 
 def main() -> None:

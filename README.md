@@ -21,7 +21,7 @@ against a 100-sample human audit.
 | Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq (Qwen3.6, and again on Qwen3.8 over 20 images; Groq rejects images under 32 px per side); Gemini flat at 258 image tokens from 10x10 to 8000x8000 px; Groq's per-image cost follows page shape, not pixel area (three levels across 172 images) | IV-A, Table II, Figs. 1-2 |
 | Gemini's resolution mode is the one single-image setting that helps | 258 to 66 image tokens (3.9x) | IV-B |
 | OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way. ChartQA replication on Qwen3.8 (n = 17): 88.2% to 29.4% correct, McNemar p = 0.002 | IV-C, Table III, Fig. 3 |
-| Four questions in one tiled call (N=4) | Groq: 3.35x fewer input tokens, 31/32 correct in both conditions; Gemini: 1.42x, 33/44 vs. 20/44 correct (Fisher p = 0.009) | IV-D, Table IV, Fig. 4 |
+| Four questions in one tiled call (N=4) | Groq: 3.35x fewer input tokens, 31/32 correct in both conditions; Gemini: 1.42x, 33/44 vs. 20/44 correct (exact McNemar p = 0.002, paired) | IV-D, Table IV, Fig. 4 |
 | Caching | Saliency-similarity cache correct on under 15% of hits; provider prefix caching unreachable | IV-E |
 
 Flat image billing is endpoint-specific: on OpenRouter, a replacement model billed the same
