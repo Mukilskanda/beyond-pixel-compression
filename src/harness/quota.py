@@ -104,7 +104,18 @@ def metered(provider: str, model: str, fn, est_tokens: int = 0, note: str = ""):
         raise BudgetExhausted(f"{provider}/{model}: provider-reported limit, blocked until {until} ({status()})")
     providers.LAST_FROM_CACHE = False
     try:
-        result = fn()
+        for attempt in range(5):
+            try:
+                result = fn()
+                break
+            except Exception as exc:
+                # Per-minute limits (e.g. Groq OTPM) clear in seconds: wait and retry.
+                msg = str(exc)
+                if attempt < 4 and "per minute" in msg:
+                    m = re.search(r"try again in ([\d.]+)s", msg)
+                    time.sleep((float(m.group(1)) if m else 65.0) + 5)
+                    continue
+                raise
     except Exception as exc:
         # The provider's own meter is authoritative (Groq counts more than the
         # usage fields show). On a daily-limit 429, record a block until the

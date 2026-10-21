@@ -50,3 +50,6 @@ dist/
 paper/
 archive/
 figures/
+
+# Operational quota ledger (provider error texts include the account org id)
+results/quota_ledger.jsonl

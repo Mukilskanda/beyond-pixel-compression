@@ -38,9 +38,10 @@ JSONL = Path("results/revision_table3.jsonl")
 # Published rates, USD per 1M tokens (input, output), accessed 2026-10-16.
 RATES = {"gemini": (0.30, 2.50), "groq": (0.80, 4.00)}
 
-# Mean thoughts_token_count per window (windows 0, 4, 8, 12), from
-# experiments/revision_gemini_thinking.py. Billed as output by Gemini.
-GEMINI_THINKING_MEAN = {"sep": 898.2, "tiled": 558.2}
+# Mean thoughts_token_count per window over the 11 matched windows (0-12 from
+# experiments/revision_gemini_thinking.py, 16-40 logged per row in
+# results/revision_table3.jsonl). Billed as output by Gemini.
+GEMINI_THINKING_MEAN = {"sep": 868.0, "tiled": 567.8}
 
 
 def fig_groq_billing():
@@ -107,9 +108,11 @@ def fig_falsification():
     documented = 258 * tiles
     fig, ax = plt.subplots(figsize=(W, 1.7))
     ax.plot(side, documented, "--", color="#b91c1c", lw=1.6, label="Documented tiling rule")
-    # Square sizes recorded in results/gemini_size_sweep.md (10, 32, 100, 1000 blank+noise, 8000).
-    pts = np.array([10, 32, 100, 1000, 8000], dtype=float)
-    ax.plot(pts, np.full_like(pts, 258.0), "o-", color="#047857", lw=1.8, ms=4, label="Measured usage field")
+    # Square sizes logged in results/gemini_size_sweep.jsonl (usage_metadata image tokens).
+    sq = sorted({(r["width"], r["image_tokens"]) for r in map(json.loads, open("results/gemini_size_sweep.jsonl", encoding="utf-8"))
+                 if r["width"] == r["height"]})
+    pts = np.array([w for w, _ in sq], dtype=float)
+    ax.plot(pts, np.array([t for _, t in sq], dtype=float), "o-", color="#047857", lw=1.8, ms=4, label="Measured usage field")
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("Image side length (px), square image")

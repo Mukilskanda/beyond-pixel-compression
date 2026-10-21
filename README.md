@@ -5,7 +5,7 @@
 
 Code and call logs for the IEEE INDICON 2026 paper (Paper ID 4684). The version described
 in the paper is tag
-[`v1.0-indicon2026`](https://github.com/Mukilskanda/beyond-pixel-compression/tree/v1.0-indicon2026).
+[`v1.1-indicon2026-final`](https://github.com/Mukilskanda/beyond-pixel-compression/tree/v1.1-indicon2026-final).
 
 Visual-token-reduction methods report savings in FLOPs and latency inside the model. This
 project measures whether client-side image reduction lowers the input tokens that a hosted
@@ -18,10 +18,10 @@ against a 100-sample human audit.
 
 | Finding | Headline numbers | Paper |
 |---|---|---|
-| Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq; Gemini flat at 258 image tokens from 10x10 to 8000x8000 px; Groq's per-image cost follows page shape, not pixel area (three levels across 172 images) | IV-A, Table II, Figs. 1-2 |
+| Pixel reduction of a fixed image does not change reported tokens | Downscale, JPEG, crop and Groq's low-detail flag: token-identical to the unreduced image on Groq (Qwen3.6, and again on Qwen3.8 over 20 images; Groq rejects images under 32 px per side); Gemini flat at 258 image tokens from 10x10 to 8000x8000 px; Groq's per-image cost follows page shape, not pixel area (three levels across 172 images) | IV-A, Table II, Figs. 1-2 |
 | Gemini's resolution mode is the one single-image setting that helps | 258 to 66 image tokens (3.9x) | IV-B |
-| OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way | IV-C, Table III, Fig. 3 |
-| Four questions in one tiled call (N=4) | Groq: 3.24x fewer input tokens, 19/20 correct in both conditions; Gemini: 1.43x, 15/16 vs. 9/16 correct (Fisher p = 0.04) | IV-D, Table IV, Fig. 4 |
+| OCR text instead of the image | Groq: 11.24x fewer input tokens, 2.4 to 2.7x fewer total tokens; Gemini: no total-token saving (1.05x). 30 of 143 paired answers flip from correct to wrong, 2 the other way. ChartQA replication on Qwen3.8 (n = 17): 88.2% to 29.4% correct, McNemar p = 0.002 | IV-C, Table III, Fig. 3 |
+| Four questions in one tiled call (N=4) | Groq: 3.35x fewer input tokens, 31/32 correct in both conditions; Gemini: 1.42x, 33/44 vs. 20/44 correct (Fisher p = 0.009) | IV-D, Table IV, Fig. 4 |
 | Caching | Saliency-similarity cache correct on under 15% of hits; provider prefix caching unreachable | IV-E |
 
 Flat image billing is endpoint-specific: on OpenRouter, a replacement model billed the same
@@ -133,13 +133,13 @@ Code is released under the MIT License (`LICENSE`).
 - Two hosted APIs were measured in depth, plus OpenRouter as a partial check; results are
   specific to these endpoints and their behavior at the time of measurement.
 - All calls used free tiers; paid-tier accounting may differ.
-- Samples are small. Text-route fidelity: n = 99, 31 and 13 pairs per group (the ChartQA
-  direction is not significant, McNemar p = 0.06). Table IV: 5 windows for Groq/DocVQA,
-  4 for Gemini, 2 for Groq/ChartQA.
+- Samples are small. Text-route fidelity: n = 99, 31 and 13 pairs per group (the Qwen3.6 ChartQA
+  direction is not significant, McNemar p = 0.06; the separate Qwen3.8 replication, n = 17,
+  gives p = 0.002). Table IV: 8 windows for Groq/DocVQA, 11 for Gemini, 5 for Groq/ChartQA.
 - The judge agrees with the human audit on 86/100 answers (kappa 0.63), less on DocVQA
   (kappa 0.41) than on ChartQA (0.74), and is slightly lenient.
-- Gemini's dollar saving in Fig. 4 rests on thinking tokens, which vary by call (-17% to
-  -51% across windows); treat it as indicative.
+- Gemini's dollar saving in Fig. 4 rests on thinking tokens, which vary by call (-16% to
+  -65% across windows); treat it as indicative.
 
 ## Citation
 

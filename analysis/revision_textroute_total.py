@@ -24,11 +24,14 @@ RNG = np.random.default_rng(0)
 def gemini_thoughts() -> dict[str, int]:
     out = {}
     for (r,) in sqlite3.connect("results/cache.sqlite").execute(
-        "SELECT response_json FROM cache WHERE model='gemini-2.5-flash'"
+        "SELECT response_json FROM cache WHERE model='gemini-2.5-flash' AND created_at < '2026-10-18'"
     ):
         rr = json.loads(r)
         um = (rr.get("raw") or {}).get("usage_metadata")
         if um is not None:
+            # Keyed by response text, so only calls before revision 2 (18 Oct 2026): later
+            # calls with the same short answer would overwrite them. Revision-2 rows log
+            # thoughts_tokens directly.
             out[rr.get("text") or ""] = um.get("thoughts_token_count") or 0
     return out
 

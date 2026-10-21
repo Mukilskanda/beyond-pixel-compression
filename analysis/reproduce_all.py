@@ -153,7 +153,7 @@ def table3_and_tests() -> None:
         p0 = p(a)
         return sum(p(x) for x in range(max(0, k - n2), min(k, n1) + 1) if p(x) <= p0 + 1e-12)
 
-    check("Fisher Gemini Table IV 15/16 vs 9/16", round(fisher(15, 1, 9, 7), 2), 0.04)
+    check("Fisher Gemini Table IV 33/44 vs 20/44", round(fisher(33, 11, 20, 24), 3), 0.009)
 
 
 # ------------------------------------------------------------- ratios / CIs
@@ -209,10 +209,13 @@ def text_route_ratios() -> None:
 # ---------------------------------------------------------------- Table IV
 def gemini_thinking_by_text() -> dict[str, int]:
     out = {}
-    for (r,) in sqlite3.connect(CACHE).execute("SELECT response_json FROM cache WHERE model='gemini-2.5-flash'"):
+    for (r,) in sqlite3.connect(CACHE).execute("SELECT response_json FROM cache WHERE model='gemini-2.5-flash' AND created_at < '2026-10-18'"):
         rr = json.loads(r)
         um = (rr.get("raw") or {}).get("usage_metadata")
         if um is not None:
+            # Keyed by response text, so only calls before revision 2 (18 Oct 2026): later
+            # calls with the same short answer would overwrite them. Revision-2 rows log
+            # thoughts_tokens directly.
             out[rr.get("text") or ""] = um.get("thoughts_token_count") or 0
     return out
 
@@ -241,12 +244,12 @@ def table4() -> None:
 
     paper = {
         ("groq", "docvqa"): {
-            "sep": (6355, 438, "19/20"),
-            "tiled": (1964, 46, "19/20"),
-            "pertile": (7436, 329, "17/19"),
+            "sep": (6568, 416, "31/32"),
+            "tiled": (1960, 45, "31/32"),
+            "pertile": (7432, 349, "28/31"),
         },
-        ("gemini", "docvqa"): {"sep": (311, 990, "15/16"), "tiled": (217, 621, "9/16"), "multi": (427, None, "10/12")},
-        ("groq", "chartqa"): {"sep": (6761, 481, "8/8"), "tiled": (1961, 34, "6/8")},
+        ("gemini", "docvqa"): {"sep": (318, 971, "33/44"), "tiled": (224, 623, "20/44"), "multi": (435, None, "27/39")},
+        ("groq", "chartqa"): {"sep": (6658, 599, "17/19"), "tiled": (1960, 33, "15/19")},
     }
     for (prov, ds), conds in paper.items():
         a = agg[(prov, ds)]
@@ -254,7 +257,7 @@ def table4() -> None:
         check(
             f"{prov}/{ds} matched windows",
             len(matched),
-            {"groq/docvqa": 5, "gemini/docvqa": 4, "groq/chartqa": 2}[f"{prov}/{ds}"],
+            {"groq/docvqa": 8, "gemini/docvqa": 11, "groq/chartqa": 5}[f"{prov}/{ds}"],
         )
         for cond, (pin, pout, pcor) in conds.items():
             rows = [r for r in a[cond] if r["offset"] in matched]
@@ -262,7 +265,9 @@ def table4() -> None:
             if pout is not None:
                 out = mean(rows, lambda r: r["output_tokens"])
                 if prov == "gemini":
-                    out += mean(rows, lambda r: sum(gthink[(r["offset"], cond)]))
+                    # Windows 16+ log thoughts_tokens per row; 0-12 are recovered from the cache.
+                    out += mean(rows, lambda r: r["thoughts_tokens"] if r.get("thoughts_tokens") is not None
+                                else sum(gthink[(r["offset"], cond)]))
                 check(f"{prov}/{ds} {cond} output (billed)", rhu(out), pout)
             check(
                 f"{prov}/{ds} {cond} correct",
@@ -273,26 +278,36 @@ def table4() -> None:
         t = {r["offset"]: r["input_tokens"] for r in a["tiled"]}
         ratios = [s[o] / t[o] for o in matched]
         if (prov, ds) == ("groq", "docvqa"):
-            check("Groq/DocVQA input reduction mean", round(sum(ratios) / len(ratios), 2), 3.24)
-            check("Groq/DocVQA range", f"{min(ratios):.2f}-{max(ratios):.2f}", "2.67-3.72")
+            check("Groq/DocVQA input reduction mean", round(sum(ratios) / len(ratios), 2), 3.35)
+            check("Groq/DocVQA range", f"{min(ratios):.2f}-{max(ratios):.2f}", "2.67-3.73")
         if (prov, ds) == ("gemini", "docvqa"):
-            check("Gemini input reduction mean", round(sum(ratios) / len(ratios), 2), 1.43)
-            check("Gemini range", f"{min(ratios):.2f}-{max(ratios):.2f}", "1.43-1.45")
-            g3 = {c: [r for r in a[c] if r["offset"] in (0, 4, 8)] for c in ("sep", "multi", "tiled")}
+            check("Gemini input reduction mean", round(sum(ratios) / len(ratios), 2), 1.42)
+            check("Gemini range", f"{min(ratios):.2f}-{max(ratios):.2f}", "1.36-1.45")
+            three = sorted(set(matched) & {r["offset"] for r in a["multi"]})
+            g3 = {c: [r for r in a[c] if r["offset"] in three] for c in ("sep", "multi", "tiled")}
+            check("Gemini windows with all three conditions", len(three), 10)
             check(
-                "Gemini 3 matched windows sep/multi/tiled correct",
+                "Gemini sep/multi/tiled correct (10 windows)",
                 "/".join(f"{sum(r['correct'] for r in v)}" for v in g3.values()),
-                "11/10/8",
+                "29/27/19",
             )
+            usd = lambda r, c: r["input_tokens"] * 0.30 + 2.50 * (  # noqa: E731
+                r["output_tokens"] + (r["thoughts_tokens"] if r.get("thoughts_tokens") is not None
+                                      else sum(gthink[(r["offset"], c)])))
+            sv = {r["offset"]: usd(r, "sep") for r in a["sep"]}
+            tv = {r["offset"]: usd(r, "tiled") for r in a["tiled"]}
+            sav = [100 * (1 - tv[o] / sv[o]) for o in matched]
+            check("Gemini $ saving mean %", round(sum(sav) / len(sav)), 36)
+            check("Gemini $ saving range %", f"{round(min(sav))}-{round(max(sav))}", "16-65")
 
     section("Fig. 4: USD per 1,000 requests (input + billed output)")
     import make_figures
 
     _, sep, tiled = make_figures.fig_cost_dollars()
     for lab, s, t, ps, pt, pr in [
-        ("Groq/DocVQA", sep[0], tiled[0], 6.84, 1.76, 74),
-        ("Groq/ChartQA", sep[1], tiled[1], 7.33, 1.70, 77),
-        ("Gemini/DocVQA", sep[2], tiled[2], 2.57, 1.62, 37),
+        ("Groq/DocVQA", sep[0], tiled[0], 6.92, 1.75, 75),
+        ("Groq/ChartQA", sep[1], tiled[1], 7.72, 1.70, 78),
+        ("Gemini/DocVQA", sep[2], tiled[2], 2.52, 1.63, 36),
     ]:
         check(f"{lab} separate $", round(s, 2), ps)
         check(f"{lab} tiled $", round(t, 2), pt)
@@ -373,7 +388,10 @@ def misc() -> None:
     for s_json, r in sqlite3.connect(CACHE).execute(
         "SELECT settings_json, response_json FROM cache WHERE model='gemini-2.5-flash'"
     ):
-        mode = json.loads(s_json).get("media_resolution", "default")
+        settings = json.loads(s_json)
+        if settings.get("multi_image"):
+            continue  # untiled multi-image call (Table IV Multi): image tokens are summed over its images
+        mode = settings.get("media_resolution", "default")
         um = (json.loads(r).get("raw") or {}).get("usage_metadata") or {}
         for d in um.get("prompt_tokens_details") or []:
             if "IMAGE" in str(d.get("modality")):
@@ -413,13 +431,15 @@ def misc() -> None:
         if r.get("provider") == "groq" and r.get("condition") == "sep":
             q38 |= {lvl(t) for t in r["per_call_input"]}
     check("Qwen3.8 single-image calls bill the same levels", sorted(q38), [790, 1300, 1830])
-    s4 = [
-        r
+    s4 = {
+        r["offset"]: r
         for r in map(json.loads, JSONL.read_text(encoding="utf-8").splitlines())
         if r.get("provider") == "groq" and r.get("dataset") == "docvqa" and r.get("condition") == "sep"
-    ]
-    tall20 = sum(1 for r in s4 for t in r["per_call_input"] if lvl(t) == 790)
-    check("Table IV Groq/DocVQA: tall pages among the 20", tall20, 4)
+    }
+    pages = [t for r in s4.values() for t in r["per_call_input"]]
+    check("Table IV Groq/DocVQA pages", len(pages), 32)
+    check("Table IV Groq/DocVQA: tall share above the 172-image 5%",
+          sum(lvl(t) == 790 for t in pages) / len(pages) > 0.05, True)
 
     section("Table VI: natural images, Gemini and OpenRouter")
     imgs = {"49153": (282, 3368, 3357), "24580": (265, 3351, 909), "57349": (267, 3353, 3291)}
@@ -441,11 +461,41 @@ def misc() -> None:
     check("OR-12B spread %", round(100 * (3368 - 3351) / 3351, 1), 0.5)
 
 
+# ------------------------------------------------------ revision-2 runs
+def revision2() -> None:
+    section("Revision 2: Qwen3.8 pixel sweep (Sec. IV-A), Gemini size sweep (Fig. 1), ChartQA replication (Table III)")
+    rows = [json.loads(x) for x in (ROOT / "results/qwen38_pixel_sweep.jsonl").read_text(encoding="utf-8").splitlines()]
+    base = {r["image"]: r["prompt_tokens"] for r in rows if r["condition"] == "unreduced"}
+    check("Qwen3.8 sweep images", len(base), 20)
+    acc = [r for r in rows if r["condition"] != "unreduced" and not r.get("rejected")]
+    check("Qwen3.8 sweep: accepted reductions token-identical", all(r["prompt_tokens"] == base[r["image"]] for r in acc), True)
+    rej = [r for r in rows if r.get("rejected")]
+    check("Qwen3.8 sweep: images rejected below 32 px", len({r["image"] for r in rej}), 3)
+    check("Rejections are all 10% downscale under 32 px",
+          all(r["condition"] == "downscale_10" and min(r["sent_size"]) < 32 for r in rej), True)
+    g = [json.loads(x) for x in (ROOT / "results/gemini_size_sweep.jsonl").read_text(encoding="utf-8").splitlines()]
+    check("Gemini size sweep points", len(g), 12)
+    check("Gemini size sweep image tokens", sorted({r["image_tokens"] for r in g}), [258])
+    d = [json.loads(x) for x in (ROOT / "results/revision_chartqa_textroute.jsonl").read_text(encoding="utf-8").splitlines()]
+    sc = [r for r in d if r["image_correct"] is not None and r["text_correct"] is not None]
+    check("ChartQA Qwen3.8 items / scored", f"{len(d)}/{len(sc)}", "20/17")
+    check("ChartQA Qwen3.8 image acc %", round(100 * sum(r["image_correct"] for r in sc) / len(sc), 1), 88.2)
+    check("ChartQA Qwen3.8 text acc %", round(100 * sum(r["text_correct"] for r in sc) / len(sc), 1), 29.4)
+    fwd = sum(r["image_correct"] and not r["text_correct"] for r in sc)
+    rev = sum(r["text_correct"] and not r["image_correct"] for r in sc)
+    check("ChartQA Qwen3.8 flips (fwd/rev)", f"{fwd}/{rev}", "10/0")
+    check("ChartQA Qwen3.8 McNemar p", round(2 * sum(comb(fwd + rev, i) for i in range(min(fwd, rev) + 1)) / 2 ** (fwd + rev), 3), 0.002)
+    check("ChartQA Qwen3.8 share of image-correct lost %", round(100 * fwd / sum(r["image_correct"] for r in sc), 1), 66.7)
+    tot = [(r["image_in"] + r["image_out"]) / (r["text_in"] + r["text_out"]) for r in d]
+    pooled = sum(r["image_in"] + r["image_out"] for r in d) / sum(r["text_in"] + r["text_out"] for r in d)
+    check("ChartQA Qwen3.8 total-token ratio pooled-mean", f"{pooled:.1f}-{sum(tot) / len(tot):.1f}", "1.8-3.0")
+
+
 def main() -> None:
     import os
 
     os.chdir(ROOT)
-    for step in (table2, table3_and_tests, text_route_ratios, table4, audit, misc):
+    for step in (table2, table3_and_tests, text_route_ratios, table4, audit, misc, revision2):
         step()
     bad = 0
     for label, got, paper, ok in checks:
